@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=MyApp
+Type=Application
+GenericName=Utility
+Comment=Light and fast Linux app
+Exec=myapp
+Categories=Utility;
+Icon=io.github.OWNER.MyApp
+Terminal=false

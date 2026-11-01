@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.OWNER.MyApp</id>
+  <name>MyApp</name>
+  <summary>Light and fast Linux app</summary>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer id="io.github.OWNER">
+    <name translatable="no">OWNER</name>
+  </developer>
+  <url type="homepage">https://github.com/OWNER/MyApp</url>
+  <description>
+    <p>Replace this text.</p>
+  </description>
+  <launchable type="desktop-id">io.github.OWNER.MyApp.desktop</launchable>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-01-01">
+      <description>
+        <p>First release.</p>
+      </description>
+    </release>
+  </releases>
+</component>

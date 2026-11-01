@@ -1,0 +1,36 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: pt_BR\n"
+
+msgctxt "Tr"
+msgid "Hello, {}"
+msgstr "Olá, {}"
+
+msgctxt "Tr"
+msgid "Version {}"
+msgstr "Versão {}"
+
+msgctxt "Main"
+msgid "world"
+msgstr "mundo"
+
+msgctxt "Main"
+msgid "Your name"
+msgstr "Seu nome"
+
+msgctxt "Main"
+msgid "About"
+msgstr "Sobre"
+
+msgctxt "About"
+msgid "A light and fast Linux app built with Rust and Slint."
+msgstr "Um app Linux leve e rápido feito com Rust e Slint."
+
+msgctxt "About"
+msgid "Website"
+msgstr "Site"
+
+msgctxt "About"
+msgid "Close"
+msgstr "Fechar"
