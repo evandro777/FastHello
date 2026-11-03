@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Writes crates/app/translations/<lang>/LC_MESSAGES/myapp.po (bundled by build.rs). Edit the table, run, commit.
-Slint's default gettext context is the component name, so msgctxt is `Main` or `About` (UI) or `Tr` (strings built in Rust)."""
+Slint's default gettext context is the component name, so msgctxt is `Main`, `About` or `WidgetsPage` (UI) or `Tr` (strings built in Rust)."""
 import os
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "crates", "app", "translations")
@@ -12,6 +12,20 @@ T = [
     ("Main", "world", ["mundo"]),
     ("Main", "Your name", ["Seu nome"]),
     ("Main", "About", ["Sobre"]),
+    ("Main", "Hello", ["Olá"]),
+    ("Main", "Widgets", ["Widgets"]),
+    ("WidgetsPage", "Linked values", ["Valores ligados"]),
+    ("WidgetsPage", "Enabled", ["Ativado"]),
+    ("WidgetsPage", "Choice", ["Escolha"]),
+    ("WidgetsPage", "Small", ["Pequeno"]),
+    ("WidgetsPage", "Medium", ["Médio"]),
+    ("WidgetsPage", "Large", ["Grande"]),
+    ("WidgetsPage", "List", ["Lista"]),
+    ("WidgetsPage", "New item", ["Novo item"]),
+    ("WidgetsPage", "Add", ["Adicionar"]),
+    ("WidgetsPage", "No items yet", ["Nenhum item ainda"]),
+    ("WidgetsPage", "1 item", ["1 item"]),
+    ("WidgetsPage", "{} items", ["{} itens"]),
     ("About", "A light and fast Linux app built with Rust and Slint.", ["Um app Linux leve e rápido feito com Rust e Slint."]),
     ("About", "Website", ["Site"]),
     ("About", "Close", ["Fechar"]),

@@ -23,6 +23,62 @@ msgctxt "Main"
 msgid "About"
 msgstr "Sobre"
 
+msgctxt "Main"
+msgid "Hello"
+msgstr "Olá"
+
+msgctxt "Main"
+msgid "Widgets"
+msgstr "Widgets"
+
+msgctxt "WidgetsPage"
+msgid "Linked values"
+msgstr "Valores ligados"
+
+msgctxt "WidgetsPage"
+msgid "Enabled"
+msgstr "Ativado"
+
+msgctxt "WidgetsPage"
+msgid "Choice"
+msgstr "Escolha"
+
+msgctxt "WidgetsPage"
+msgid "Small"
+msgstr "Pequeno"
+
+msgctxt "WidgetsPage"
+msgid "Medium"
+msgstr "Médio"
+
+msgctxt "WidgetsPage"
+msgid "Large"
+msgstr "Grande"
+
+msgctxt "WidgetsPage"
+msgid "List"
+msgstr "Lista"
+
+msgctxt "WidgetsPage"
+msgid "New item"
+msgstr "Novo item"
+
+msgctxt "WidgetsPage"
+msgid "Add"
+msgstr "Adicionar"
+
+msgctxt "WidgetsPage"
+msgid "No items yet"
+msgstr "Nenhum item ainda"
+
+msgctxt "WidgetsPage"
+msgid "1 item"
+msgstr "1 item"
+
+msgctxt "WidgetsPage"
+msgid "{} items"
+msgstr "{} itens"
+
 msgctxt "About"
 msgid "A light and fast Linux app built with Rust and Slint."
 msgstr "Um app Linux leve e rápido feito com Rust e Slint."

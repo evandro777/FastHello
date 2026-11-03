@@ -1,4 +1,6 @@
 use myapp_core::settings::Settings;
+use slint::{StandardListViewItem, VecModel};
+use std::rc::Rc;
 
 slint::include_modules!();
 
@@ -17,11 +19,23 @@ fn main() {
 
     let settings = Settings::load();
     let ui = Main::new().unwrap();
+    // One model for the whole run: the add-item closure and the fixtures must push into the same one.
+    let items = Rc::new(VecModel::<StandardListViewItem>::default());
+    ui.set_items(items.clone().into());
+    ui.on_add_item({
+        let items = items.clone();
+        move |text| {
+            let text = text.trim();
+            if !text.is_empty() {
+                items.push(text.into());
+            }
+        }
+    });
     // Only fails when no translation matches; the source strings are English anyway.
     let _ = slint::select_bundled_translation(&language(&settings));
     // With fixtures (scripts/ui-snapshot.sh) nothing is scanned, so the real system is never read or changed.
     if let Some(mode) = fixtures::mode() {
-        fixtures::apply(&ui, mode);
+        fixtures::apply(&ui, &items, mode);
     }
     ui.set_version(env!("CARGO_PKG_VERSION").into());
     ui.on_open_website(|| {

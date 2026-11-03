@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Add one entry per sidebar page, with the number the app's `page` property uses.
-declare -A PAGES=([main]=0 [about]=about)
+declare -A PAGES=([main]=0 [widgets]=1 [about]=about)
 MODES=${MODES:-"empty single many"}
 OUT=target/ui-snapshots
 DISPLAY_NUM=:99

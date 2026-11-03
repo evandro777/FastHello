@@ -15,7 +15,7 @@ Landing page: <https://OWNER.github.io/MyApp/> (published by the Flatpak workflo
 
 ## Features
 
-- A working "Hello" example: type your name and the greeting updates live. The **About** button opens a dialog with the icon, version, description and a link to the website. Replace it with your app, keep the About dialog.
+- A working "Hello" example: type your name and the greeting updates live. The **About** button opens a dialog with the icon, version, description and a link to the website. Replace it with your app, keep the About dialog. A sidebar switches to a **Widgets** page that demonstrates layouts and widgets affecting each other (checkbox, slider/spin box/progress bar, combo box, an add-to-list form).
 - (Edit: what the app does.)
 
 ## Status

@@ -1,4 +1,7 @@
-import { Button, HorizontalBox, LineEdit, Palette, VerticalBox } from "std-widgets.slint";
+import {
+    Button, CheckBox, ComboBox, GroupBox, HorizontalBox, LineEdit, Palette, ProgressIndicator, Slider, SpinBox,
+    StandardListView, VerticalBox,
+} from "std-widgets.slint";
 
 // Strings built in Rust go through this global (never `format!` user-visible text in Rust).
 export global Tr {
@@ -62,32 +65,141 @@ component About inherits Rectangle {
     }
 }
 
+// Shows layouts and widgets that affect each other: a checkbox enables others, one value drives three widgets.
+component WidgetsPage inherits Rectangle {
+    in property <[StandardListViewItem]> items;
+    callback add-item(string);
+    property <bool> controls-enabled: true;
+    // One int shared by SpinBox (int) and Slider (float); `<=>` between them would not compile.
+    property <int> level: 50;
+
+    // Dragging the slider overwrites its `value` binding, so push later changes (SpinBox) back by hand.
+    changed level => { slider.value = root.level; }
+
+    function submit() {
+        root.add-item(input.text);
+        input.text = "";
+    }
+
+    GridLayout {
+        padding: 12px;
+        spacing: 12px;
+        Row {
+            GroupBox {
+                vertical-stretch: 0;
+                title: @tr("Linked values");
+                VerticalLayout {
+                    alignment: start;
+                    spacing: 8px;
+                    CheckBox { text: @tr("Enabled"); checked <=> root.controls-enabled; }
+                    HorizontalLayout {
+                        spacing: 8px;
+                        slider := Slider {
+                            horizontal-stretch: 1;
+                            min-width: 80px;
+                            maximum: 100;
+                            value: root.level;
+                            enabled: root.controls-enabled;
+                            changed(v) => { root.level = round(v); }
+                        }
+                        SpinBox {
+                            minimum: 0;
+                            maximum: 100;
+                            value <=> root.level;
+                            enabled: root.controls-enabled;
+                        }
+                    }
+                    ProgressIndicator { progress: root.level / 100; }
+                    Text { text: "\{root.level}%"; }
+                }
+            }
+            GroupBox {
+                vertical-stretch: 0;
+                title: @tr("Choice");
+                VerticalLayout {
+                    alignment: start;
+                    spacing: 8px;
+                    size := ComboBox {
+                        model: [@tr("Small"), @tr("Medium"), @tr("Large")];
+                        current-index: 1;
+                        enabled: root.controls-enabled;
+                    }
+                    Text { text: "Aa"; font-size: [12px, 16px, 22px][size.current-index]; }
+                }
+            }
+        }
+        Row {
+            GroupBox {
+                colspan: 2;
+                vertical-stretch: 1;
+                title: @tr("List");
+                VerticalLayout {
+                    spacing: 8px;
+                    HorizontalLayout {
+                        spacing: 8px;
+                        input := LineEdit {
+                            placeholder-text: @tr("New item");
+                            accepted => { root.submit(); }
+                        }
+                        Button { text: @tr("Add"); clicked => { root.submit(); } }
+                    }
+                    if root.items.length == 0: Text {
+                        text: @tr("No items yet");
+                        vertical-stretch: 1;
+                    }
+                    if root.items.length > 0: StandardListView {
+                        model: root.items;
+                        min-height: 80px;
+                    }
+                    Text {
+                        text: root.items.length == 1 ? @tr("1 item") : @tr("{} items", root.items.length);
+                    }
+                }
+            }
+        }
+    }
+}
+
 export component Main inherits Window {
     in-out property <string> name;
     in property <string> version;
     in-out property <bool> about-open: false;
     // The sidebar page; `in-out` so MYAPP_PAGE can open one directly (scripts/ui-snapshot.sh).
     in-out property <int> page: 0;
+    in property <[StandardListViewItem]> items;
     callback open-website();
+    callback add-item(string);
     title: "MyApp";
 
-    VerticalBox {
-        width: root.width;
-        height: root.height;
-        alignment: center;
-        Text {
-            text: Tr.greeting(root.name != "" ? root.name : @tr("world"));
-            font-size: 24px;
-            wrap: word-wrap;
-            horizontal-alignment: center;
+    HorizontalLayout {
+        // Two-way bound to `page`: the sidebar and MYAPP_PAGE drive the same value.
+        StandardListView {
+            width: 140px;
+            model: [{ text: @tr("Hello") }, { text: @tr("Widgets") }];
+            current-item <=> root.page;
         }
-        HorizontalLayout {
+        if root.page == 0: VerticalBox {
             alignment: center;
-            LineEdit { placeholder-text: @tr("Your name"); text <=> root.name; max-width: 320px; }
+            Text {
+                text: Tr.greeting(root.name != "" ? root.name : @tr("world"));
+                font-size: 24px;
+                // Without this a long unbreakable name sets the minimum width and the window grows.
+                min-width: 0px;
+                wrap: word-wrap;
+                horizontal-alignment: center;
+            }
+            HorizontalLayout {
+                alignment: center;
+                LineEdit { placeholder-text: @tr("Your name"); text <=> root.name; max-width: 320px; }
+            }
+            HorizontalLayout {
+                alignment: center;
+                Button { text: @tr("About"); clicked => { root.about-open = true; } }
+            }
         }
-        HorizontalLayout {
-            alignment: center;
-            Button { text: @tr("About"); clicked => { root.about-open = true; } }
+        if root.page == 1: WidgetsPage {
+            items: root.items;
+            add-item(t) => { root.add-item(t); }
         }
     }
 
