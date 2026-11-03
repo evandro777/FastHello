@@ -7,7 +7,7 @@ set -euo pipefail
 umask 077
 cd "$(dirname "$0")"
 public=signing-key.b64
-private=${1:-$HOME/.local/share/myapp-flatpak-signing.asc}
+private=${1:-$HOME/.local/share/myapp-flatpak-private-signing.asc}
 
 # A new key breaks every user's existing remote (they trust the old one), so never replace it by accident.
 [ ! -e "$public" ] || { echo "$public already exists: refusing to make a new key (see 'Replacing the key' in docs/FLATPAK-SIGNING.md)" >&2; exit 1; }
