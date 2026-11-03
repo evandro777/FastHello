@@ -4,97 +4,111 @@ How the signed Flatpak repository is built on GitHub, and what you do once to se
 
 ## Why it is signed
 
-`flatpak.yml` publishes an OSTree repository (the "remote") on GitHub Pages. Flatpak refuses to install from an unsigned
-remote when the install is system-wide (`--system`), and Linux Mint's Update Manager only sees system-wide installs. So the
-repository is signed with a GPG key.
+`flatpak.yml` publishes an OSTree repository (the "remote") on GitHub Pages. Flatpak refuses to install from an unsigned remote when the install is system-wide (`--system`), and Linux Mint's Update Manager only sees system-wide installs. So the repository is signed with a GPG key.
 
 A key is a **pair** made together:
 
-| Half    | File                         | Where it lives                      | What it does                                   |
-|---------|------------------------------|-------------------------------------|------------------------------------------------|
-| Public  | `flatpak/signing-key.b64`    | Committed to the repository         | Lets Flatpak on the user's machine *check* signatures. Not secret. |
-| Private | a file outside the repo      | **Never** committed; GitHub secret  | Creates signatures. Whoever has it can sign updates as you. |
+| Half    | File                                 | Where it lives                     | What it does                                                       |
+|---------|--------------------------------------|------------------------------------|--------------------------------------------------------------------|
+| Public  | `flatpak/signing-key.b64`            | Committed to the repository        | Lets Flatpak on the user's machine *check* signatures. Not secret. |
+| Private | `private-key.asc` (outside the repo) | **Never** committed; GitHub secret | Creates signatures. Whoever has it can sign updates as you.        |
 
 On a version tag, CI imports the private key from the secret `FLATPAK_GPG_PRIVATE_KEY`, signs the repository, and puts the
 public key into `myapp.flatpakrepo` so users' Flatpak knows which key to trust.
 
 ## One-time setup
 
-### 1. Make the key pair
+You only do this once per project (or again if the key is ever lost or leaked, see "Replacing the key").
+
+### 1. Make the key pair & 
+
+Use a throwaway key folder so your own GPG keys are not touched.
 
 ```bash
 flatpak/new-signing-key.sh
 ```
 
-It makes the pair in a temporary keyring (your own GPG keys are not touched), writes `flatpak/signing-key.b64`, writes the
-private key to `~/.local/share/myapp-flatpak-signing.asc` (or the path you pass as an argument), checks that the two
-match, deletes the temporary keyring and prints the next steps. It refuses to run if `signing-key.b64` already exists.
-Commit `flatpak/signing-key.b64`. Never commit the private file.
+It makes the pair in a temporary keyring (your own GPG keys are not touched), writes `flatpak/signing-key.b64`, writes the private key to `~/.local/share/myapp-flatpak-signing.asc` (or the path you pass as an argument), checks that the two match, deletes the temporary keyring and prints the next steps. It refuses to run if `signing-key.b64` already exists. Commit `flatpak/signing-key.b64`. Never commit the private file.
 
 ### 2. Store the private key as a GitHub secret
 
-A *secret* is a value GitHub keeps for the repository: workflows can read it, nobody can view it afterwards. The name must
-be exactly `FLATPAK_GPG_PRIVATE_KEY`.
+A *secret* is a value GitHub keeps for the repository: workflows can read it, but nobody can view it afterwards (you can only replace it). The name must be exactly `FLATPAK_GPG_PRIVATE_KEY`, because `flatpak.yml` reads it by that name.
 
-**With the website:** repository **Settings** → **Secrets and variables** → **Actions** → **New repository secret**. Name:
-`FLATPAK_GPG_PRIVATE_KEY`. Secret: open the private key file and paste everything, from `-----BEGIN PGP PRIVATE KEY BLOCK-----`
-to the `END` line.
+**With the website:** repository **Settings** → **Secrets and variables** → **Actions** → **New repository #### With the website
 
-**With `gh`** (GitHub's command-line tool; `sudo apt install gh`, then `gh auth login` once):
+1. Open the repository on GitHub → **Settings** → **Secrets and variables** → **Actions**.
+2. Click **New repository secret**.
+3. Name: `FLATPAK_GPG_PRIVATE_KEY`.
+4. Secret: open `private-key.asc` in a text editor and copy **everything**, from
+   `-----BEGIN PGP PRIVATE KEY BLOCK-----` to `-----END PGP PRIVATE KEY BLOCK-----`.
+5. Click **Add secret**.
+
+#### With the `gh` command (alternative)
+
+`gh` is GitHub's official command-line tool: it does from the terminal what you would click on the website.
 
 ```bash
-gh secret set FLATPAK_GPG_PRIVATE_KEY < ~/.local/share/myapp-flatpak-signing.asc
+sudo apt install gh        # once; Debian/Ubuntu/Mint
+gh auth login              # once; follow the prompts (browser or token)
+
+# From a clone of the repository (or add --repo OWNER/MyApp):
+gh secret set FLATPAK_GPG_PRIVATE_KEY < private-key.asc
 ```
 
-`gh secret set NAME` creates or replaces the secret; `<` feeds the file's contents in as the value.
+`gh secret set NAME` creates or replaces the secret `NAME`; `< private-key.asc` is the shell feeding the file's contents
+in as the value. List the secrets (names only) with `gh secret list`.
 
 ### 3. Back it up, then delete the loose file
 
-GitHub never shows the secret again. Keep a copy in a password manager, then `shred -u` the file.
+GitHub never shows the secret again. Keep a copy of `private-key.asc` in a password manager or another private place, then delete the loose copies:
+
+```bash
+shred -u private-key.asc            # or rm; the file is only a copy of what is in the keyring
+rm -rf "$GNUPGHOME"                 # the temporary keyring also holds the private key
+unset GNUPGHOME
+```
 
 ### 4. The other one-time GitHub settings
 
-See [RELEASING.md](../RELEASING.md): Pages source, and the `v*` tag rule on the `github-pages` environment.
+These are not about the key, but the first tag fails without them (details in [RELEASING.md](../RELEASING.md)):
 
-## What the script does by hand
-
-If you cannot run the script, this is what it does (use a throwaway `GNUPGHOME`):
-
-```bash
-export GNUPGHOME=$(mktemp -d)
-gpg --batch --pinentry-mode loopback --passphrase '' --quick-generate-key "MyApp Flatpak <you@example.com>" ed25519 sign never
-fpr=$(gpg --list-keys --with-colons | awk -F: '/^fpr/ {print $10; exit}')
-gpg --export "$fpr" | base64 -w0 > flatpak/signing-key.b64              # public: commit
-gpg --export-secret-keys --armor "$fpr" > ~/.local/share/myapp-flatpak-signing.asc   # private: secret
-base64 -d flatpak/signing-key.b64 | gpg --show-keys --with-colons | awk -F: '/^fpr/ {print $10; exit}'   # must equal $fpr
-```
-
-No passphrase because CI cannot type one; `never` because an expired key would silently break updates for every user.
+- Settings → Pages → Source: **GitHub Actions**.
+- Settings → Environments → `github-pages` → add a **tag** deployment rule `v*`.
 
 ## What CI does with the key
 
 In `.github/workflows/flatpak.yml`, on a `v*` tag only (secrets are not available to pull requests):
 
-1. It stops with a clear message if `flatpak/signing-key.b64` or the secret is missing.
-2. `gpg --batch --import` loads the private key; the fingerprint is read from the committed public key.
-3. `flatpak/build.sh --bundle` passes it to `flatpak-builder --gpg-sign=<fingerprint>`, which signs the repository.
+1. `echo "$GPG_PRIVATE_KEY" | gpg --batch --import` loads the private key from the secret.
+2. The fingerprint is read from the committed public key (`base64 -d flatpak/signing-key.b64 | gpg --show-keys ...`) and exported as `FLATPAK_GPG_KEY`.
+3. `flatpak/build.sh --bundle` passes it to `flatpak-builder --gpg-sign=<fingerprint>`, which signs the commits and the repository summary. The signed repository is then deployed to GitHub Pages.
 4. The `pages` job writes `GPGKey=<contents of signing-key.b64>` into `myapp.flatpakrepo`.
 
 Pushes and pull requests build the bundle without a key (with a warning), so CI works before you have made one.
 
 ## Checking a build
 
+After the first tag, on any machine with Flatpak:
+
 ```bash
 flatpak remote-add --system --if-not-exists myapp https://OWNER.github.io/MyApp/myapp.flatpakrepo
 flatpak install --system myapp io.github.OWNER.MyApp
 ```
 
-A wrongly signed repository fails with a GPG error. `ostree summary --view --repo=flatpak/repo` shows the signature of a
-repository built locally.
+An unsigned or wrongly signed repository makes the install fail with a GPG error. To inspect a repository built locally (`flatpak/build.sh --bundle` without a key gives an unsigned one):
+
+```bash
+ostree summary --view --repo=flatpak/repo      # a signed repo lists a GPG signature
+```
 
 ## Replacing the key
 
-If the private key is lost or leaked, delete `flatpak/signing-key.b64`, run `flatpak/new-signing-key.sh` again, commit the
-new public key and replace the secret. Users who already added the remote trust the *old* key, so their updates fail until
-they re-add it (`flatpak remote-delete --system myapp`, then `remote-add` again). That is why the key never expires and the
-private key needs a backup.
+If the private key is lost or leaked, make a new pair (steps 1-3), commit the new `signing-key.b64`, and replace the secret. Users who already added the remote still trust the *old* key, so their updates will fail until they remove and re-add the remote:
+
+```bash
+flatpak remote-delete --system myapp
+flatpak remote-add --system myapp https://OWNER.github.io/MyApp/myapp.flatpakrepo
+```
+
+This is why the key has no expiry date and the private key needs a backup.
+

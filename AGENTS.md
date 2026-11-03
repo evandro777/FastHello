@@ -48,9 +48,7 @@ System deps: `libfontconfig-dev libxkbcommon-dev libxkbcommon-x11-dev libx11-dev
 
 ## Dialogs
 
-- Dialogs (About) are in-window overlays (`component About` as the last child of `Main`), not second windows: closing
-  Main always ends the app and `scripts/ui-snapshot.sh` can capture them (`MYAPP_PAGE=about`). Its version comes from
-  `CARGO_PKG_VERSION`, the Website button opens `CARGO_PKG_REPOSITORY` with `xdg-open`.
+- Dialogs (About) are in-window overlays (`component About` as the last child of `Main`), not second windows: closing Main always ends the app and `scripts/ui-snapshot.sh` can capture them (`MYAPP_PAGE=about`). Its version comes from `CARGO_PKG_VERSION`, the Website button opens `CARGO_PKG_REPOSITORY` with `xdg-open`.
 
 ## Translations
 

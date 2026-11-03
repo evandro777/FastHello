@@ -13,7 +13,7 @@ env_prefix=$(echo "$crate" | tr 'a-z-' 'A-Z_')
 # GitHub Pages host names are lower case (OWNER.github.io), so that rule runs before the generic OWNER one.
 git ls-files -z --cached --others --exclude-standard | grep -zvE '^rename\.sh$|\.png$|^\.claude/settings' | xargs -0 sed -i \
   -e "s/MYAPP_/${env_prefix}_/g" -e "s/$old_id/$new_id/g" -e "s#OWNER/MyApp#$owner/$name#g" -e "s/myapp/$crate/g" -e "s/MyApp/$name/g" \
-  -e "s/OWNER\.github\.io/${owner,,}.github.io/g" -e "s/OWNER/$owner/g"
+  -e "s/io\.github\.owner\"/io.github.${owner,,}\"/g" -e "s/OWNER\.github\.io/${owner,,}.github.io/g" -e "s/OWNER/$owner/g"
 for f in packaging/$old_id.*; do mv "$f" "${f/$old_id/$new_id}"; done
 mv "flatpak/$old_id.yml" "flatpak/$new_id.yml"
 for po in crates/app/translations/*/LC_MESSAGES/myapp.po; do mv "$po" "${po/myapp.po/$crate.po}"; done

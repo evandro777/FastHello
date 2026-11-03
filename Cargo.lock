@@ -2405,7 +2405,7 @@ dependencies = [
 
 [[package]]
 name = "myapp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "myapp-core",
  "slint",
@@ -2414,7 +2414,7 @@ dependencies = [
 
 [[package]]
 name = "myapp-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "toml",
