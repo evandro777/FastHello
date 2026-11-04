@@ -24,7 +24,19 @@ Landing page: <https://OWNER.github.io/MyApp/> (published by the Flatpak workflo
 
 ## Install
 
-### Flatpak: easy install with automatic updates
+### Flatpak
+
+#### Install from file (no updates)
+
+Download `MyApp-<version>-x86_64.flatpak` from [Releases](https://github.com/OWNER/MyApp/releases), then execute:
+
+```bash
+flatpak install --user ~/Downloads/MyApp-<version>-x86_64.flatpak
+```
+
+Installing from file, will not auto update.
+
+#### Install with automatic updates
 
 Every release is also published as a Flatpak remote, so `flatpak update` (or your software centre) keeps MyApp current. A `.flatpak` file downloaded from Releases is a one-off install: to get updates, add the remote below.
 
@@ -39,9 +51,16 @@ The remote is GPG-signed (system-wide installs refuse unsigned remotes), but the
 
 ### AppImage (with delta updates)
 
-Download `MyApp-<version>-x86_64.AppImage` from [Releases](https://github.com/OWNER/MyApp/releases), then `chmod +x` it and run it. It uses the fontconfig, xkbcommon and X11 libraries already on your system.
+Download `MyApp-<version>-x86_64.AppImage` from [Releases](https://github.com/OWNER/MyApp/releases), then execute:
 
-It has update information built in, so a tool such as [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) (`appimageupdatetool MyApp-*.AppImage`), Gear Lever or AppManager downloads only the changed parts of the next release. The AppImage does not update itself.
+```bash
+sudo chmod +x ~/Downloads/MyApp-<version>-x86_64.AppImage
+~/Downloads/MyApp-<version>-x86_64.AppImage
+```
+
+It uses the fontconfig, xkbcommon and X11 libraries already on your system.
+
+The AppImage does not update itself, but it has update information built in, so a tool such as [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) (`appimageupdatetool FastPaste-*.AppImage`), [Gear Lever](https://github.com/mijorus/gearlever) or [AppManager](https://github.com/kem-a/AppManager) downloads only the changed parts of the next release.
 
 ## Build & Configurations
 
