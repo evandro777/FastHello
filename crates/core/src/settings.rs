@@ -1,5 +1,8 @@
 //! User settings in one TOML file under the XDG data dir (`~/.local/share/MyApp`).
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +17,8 @@ pub const MAX_SIZE: u32 = 8192;
 pub struct Settings {
     /// "" follows the system locale; otherwise a gettext code such as "pt_BR".
     pub language: String,
+    /// "" follows the system light/dark mode; otherwise "light" or "dark".
+    pub theme: String,
     pub width: u32,
     pub height: u32,
 }
@@ -22,6 +27,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             language: String::new(),
+            theme: String::new(),
             width: 600,
             height: 450,
         }
@@ -32,30 +38,31 @@ fn parse(text: &str) -> Result<Settings, toml::de::Error> {
     toml::from_str(text)
 }
 
-fn data_dir() -> PathBuf {
+/// `None` without `XDG_DATA_HOME` or `HOME`: better no settings than a folder dropped in the current directory.
+fn data_dir() -> Option<PathBuf> {
     let base = std::env::var_os("XDG_DATA_HOME")
         .map(PathBuf::from)
         .filter(|p| p.is_absolute())
-        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))
-        .unwrap_or_else(|| PathBuf::from("."));
-    base.join(APP_DIR)
-}
-
-fn path() -> PathBuf {
-    data_dir().join("settings.toml")
+        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))?;
+    Some(base.join(APP_DIR))
 }
 
 impl Settings {
     pub fn load() -> Self {
-        let mut s = match fs::read_to_string(path()) {
+        data_dir().map_or_else(Self::default, |dir| Self::load_from(&dir))
+    }
+
+    fn load_from(dir: &Path) -> Self {
+        let path = dir.join("settings.toml");
+        let mut s = match fs::read_to_string(&path) {
             Ok(text) => parse(&text).unwrap_or_else(|e| {
                 // The file is hand-edited; the next save() must not overwrite what the user wrote.
-                let bad = path().with_extension("toml.bad");
+                let bad = path.with_extension("toml.bad");
                 eprintln!(
                     "settings.toml is invalid ({e}); kept as {}, using defaults",
                     bad.display()
                 );
-                let _ = fs::rename(path(), bad);
+                let _ = fs::rename(&path, bad);
                 Settings::default()
             }),
             Err(_) => Settings::default(),
@@ -65,6 +72,9 @@ impl Settings {
     }
 
     fn normalize(&mut self) {
+        if !matches!(self.theme.as_str(), "light" | "dark") {
+            self.theme.clear();
+        }
         self.width = self.width.clamp(MIN_SIZE.0, MAX_SIZE);
         self.height = self.height.clamp(MIN_SIZE.1, MAX_SIZE);
     }
@@ -72,18 +82,19 @@ impl Settings {
     /// Atomic write so a crash can never leave a half-written file. Failures are reported on stderr;
     /// the app keeps working with the in-memory settings.
     pub fn save(&self) {
-        if let Err(e) = self.try_save() {
-            eprintln!("cannot save settings to {}: {e}", path().display());
+        let Some(dir) = data_dir() else { return };
+        if let Err(e) = self.save_to(&dir) {
+            eprintln!("cannot save settings to {}: {e}", dir.display());
         }
     }
 
-    fn try_save(&self) -> std::io::Result<()> {
-        let dir = data_dir();
-        fs::create_dir_all(&dir)?;
+    fn save_to(&self, dir: &Path) -> std::io::Result<()> {
+        fs::create_dir_all(dir)?;
         let text = toml::to_string_pretty(self).map_err(std::io::Error::other)?;
-        let tmp = dir.join("settings.toml.tmp");
+        // The pid keeps two running copies from writing the same temp file.
+        let tmp = dir.join(format!("settings.toml.{}.tmp", std::process::id()));
         fs::write(&tmp, text)?;
-        fs::rename(&tmp, path())
+        fs::rename(&tmp, dir.join("settings.toml"))
     }
 }
 
@@ -100,6 +111,59 @@ mod tests {
     #[test]
     fn invalid_file_is_an_error_not_defaults() {
         assert!(parse("width = \"wide\"").is_err());
+    }
+
+    fn temp_dir(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("myapp-test-{name}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        dir
+    }
+
+    #[test]
+    fn save_then_load_round_trips() {
+        let dir = temp_dir("roundtrip");
+        let s = Settings {
+            language: "pt_BR".into(),
+            theme: "dark".into(),
+            width: 700,
+            height: 500,
+        };
+        s.save_to(&dir).unwrap();
+        let loaded = Settings::load_from(&dir);
+        assert_eq!(
+            (
+                loaded.language.as_str(),
+                loaded.theme.as_str(),
+                loaded.width,
+                loaded.height
+            ),
+            ("pt_BR", "dark", 700, 500)
+        );
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn invalid_file_is_kept_as_bad_and_defaults_are_used() {
+        let dir = temp_dir("bad");
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("settings.toml"), "width = \"wide\"").unwrap();
+        assert_eq!(Settings::load_from(&dir).width, Settings::default().width);
+        assert!(dir.join("settings.toml.bad").exists());
+        assert!(!dir.join("settings.toml").exists());
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn theme_defaults_to_system_and_unknown_values_are_reset() {
+        let mut old: Settings = toml::from_str("width = 700").unwrap();
+        old.normalize();
+        assert_eq!(old.theme, "");
+        let mut odd: Settings = toml::from_str("theme = \"blue\"").unwrap();
+        odd.normalize();
+        assert_eq!(odd.theme, "");
+        let mut dark: Settings = toml::from_str("theme = \"dark\"").unwrap();
+        dark.normalize();
+        assert_eq!(dark.theme, "dark");
     }
 
     #[test]

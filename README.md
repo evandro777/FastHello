@@ -11,16 +11,21 @@ Light and fast Linux app built with Rust + [Slint](https://slint.dev) (software 
 
 > Template note: this repository started from a template. Run `./rename.sh <crate> <DisplayName> <github-owner>` once, then rewrite this README, `AGENTS.md` ("What this is", "Open items"), `docs/site/index.html` and the metainfo description for the real app, and delete this note.
 
-Landing page: <https://OWNER.github.io/MyApp/> (published by the Flatpak workflow on the first tag).
+Page: <https://OWNER.github.io/MyApp/>
 
 ## Features
 
-- A working "Hello" example: type your name and the greeting updates live. The **About** button opens a dialog with the icon, version, description and a link to the website. Replace it with your app, keep the About dialog. A sidebar switches to a **Widgets** page that demonstrates layouts and widgets affecting each other (checkbox, slider/spin box/progress bar, combo box, an add-to-list form).
-- (Edit: what the app does.)
-
-## Status
-
-(Edit: for example "Early pilot. Works on X11, tested on Cinnamon.")
+- The "Hello" example app:
+    - Type your name and the greeting updates as you type.
+    - A sidebar switches between Hello and Widgets. Its burger button opens the settings dialog (Appearance and Language). Its About button opens a dialog with the icon, version, description and website link.
+    - The Widgets page has four tabs:
+        - Inputs: checkbox, slider, spin box, switch, radio buttons, password field and text area, some of them linked to each other.
+        - List: an add/remove list.
+        - Table: a sortable table with a search box and a Filters button (file type, larger than 1 MB). Typing anywhere on this tab goes into the search box, no need to click it first. Esc empties the search box.
+        - Feedback: a progress bar and spinner for a running task.
+    - The settings dialog has an Appearance choice (System, Light or Dark) and a Language choice (System, English or Português), both remembered.
+    - You are meant to replace the examples with your own app and keep the settings and About dialogs.
+- (Edit: what the app does.): a placeholder for you to describe the real app after you rename the template.
 
 ## Install
 

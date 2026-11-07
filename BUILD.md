@@ -66,7 +66,8 @@ appimage/build.sh             # needs appimagetool on PATH; writes MyApp-<versio
 
 `$XDG_DATA_HOME/MyApp/settings.toml` (defaults to `~/.local/share/MyApp`; in the Flatpak under `~/.var/app/<app-id>/data/`):
 
-- `language`: `""` follows the system locale; otherwise a code such as `"pt_BR"`.
-- `width`, `height`: the window size.
+- `language`: `""` follows the system locale; otherwise a code such as `"pt_BR"`. The Language choice in the settings dialog offers `""`, `"en"` and `"pt_BR"`, applies at once and is saved at once.
+- `theme`: `""` follows the system light/dark mode; `"light"` or `"dark"` forces one. Set in the settings dialog (burger button), saved at once.
+- `width`, `height`: the window size, saved when the app exits.
 
 (Edit: document the settings the app adds.)

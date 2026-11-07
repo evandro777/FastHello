@@ -1,7 +1,5 @@
-import {
-    Button, CheckBox, ComboBox, GroupBox, HorizontalBox, LineEdit, Palette, ProgressIndicator, Slider, SpinBox,
-    StandardListView, VerticalBox,
-} from "std-widgets.slint";
+import { Button, ComboBox, GroupBox, LineEdit, Palette, ScrollView, StandardListView } from "std-widgets.slint";
+import { WidgetsPage } from "widgets.slint";
 
 // Strings built in Rust go through this global (never `format!` user-visible text in Rust).
 export global Tr {
@@ -9,11 +7,11 @@ export global Tr {
     public pure function version(v: string) -> string { return @tr("Version {}", v); }
 }
 
-// An in-window overlay, not a second window: closing Main always ends the app, and ui-snapshot.sh can capture it.
-component About inherits Rectangle {
-    in property <string> version;
+// The shell of every dialog: an in-window overlay, not a second window (closing Main always ends the app, and
+// ui-snapshot.sh can capture it). The dialog's content goes inside the card.
+component Dialog inherits Rectangle {
+    in property <length> card-width: 360px;
     callback dismiss();
-    callback open-website();
     background: #0008;
     init => { keys.focus(); }
 
@@ -25,12 +23,17 @@ component About inherits Rectangle {
                 root.dismiss();
                 return accept;
             }
+            // Keeps Tab from moving focus to the widgets hidden behind the overlay.
+            if event.text == Key.Tab || event.text == Key.Backtab {
+                return accept;
+            }
             return reject;
         }
     }
     Rectangle {
-        width: 320px;
-        height: box.preferred-height;
+        width: min(root.card-width, parent.width - 32px);
+        // A dialog with a ScrollView shrinks to fit a small window instead of outgrowing it.
+        height: min(box.preferred-height, parent.height - 32px);
         x: (parent.width - self.width) / 2;
         y: (parent.height - self.height) / 2;
         background: Palette.background;
@@ -38,177 +41,258 @@ component About inherits Rectangle {
         drop-shadow-blur: 16px;
         drop-shadow-color: #0006;
         TouchArea { }
-        box := VerticalBox {
-            alignment: start;
-            HorizontalLayout {
-                alignment: center;
-                Image {
-                    source: @image-url("../../../packaging/io.github.OWNER.MyApp.svg");
-                    width: 64px;
-                    height: 64px;
-                }
-            }
-            Text { text: "MyApp"; font-size: 20px; font-weight: 700; horizontal-alignment: center; }
-            Text { text: Tr.version(root.version); horizontal-alignment: center; }
-            Text {
-                text: @tr("A light and fast Linux app built with Rust and Slint.");
-                wrap: word-wrap;
-                horizontal-alignment: center;
-            }
-            HorizontalLayout {
-                alignment: end;
-                spacing: 8px;
-                Button { text: @tr("Website"); clicked => { root.open-website(); } }
-                Button { text: @tr("Close"); primary: true; clicked => { root.dismiss(); } }
-            }
+        box := VerticalLayout {
+            padding: 16px;
+            spacing: 12px;
+            @children
         }
     }
 }
 
-// Shows layouts and widgets that affect each other: a checkbox enables others, one value drives three widgets.
-component WidgetsPage inherits Rectangle {
-    in property <[StandardListViewItem]> items;
-    callback add-item(string);
-    property <bool> controls-enabled: true;
-    // One int shared by SpinBox (int) and Slider (float); `<=>` between them would not compile.
-    property <int> level: 50;
+component SettingsDialog inherits Dialog {
+    // 0 follows the system, 1 light, 2 dark (settings.theme).
+    in-out property <int> color-scheme-index;
+    // 0 follows the system, 1 English, 2 Português (settings.language).
+    in-out property <int> language-index;
+    callback show-about();
 
-    // Dragging the slider overwrites its `value` binding, so push later changes (SpinBox) back by hand.
-    changed level => { slider.value = root.level; }
-
-    function submit() {
-        root.add-item(input.text);
-        input.text = "";
+    Text { text: @tr("Settings"); font-size: 20px; font-weight: 700; }
+    ScrollView {
+        // A ScrollView does not report its content's height, so the card would collapse to a sliver.
+        preferred-height: content.preferred-height;
+        content := VerticalLayout {
+            alignment: start;
+            spacing: 12px;
+            // Label and selector side by side (the labels share one width).
+            HorizontalLayout {
+                spacing: 12px;
+                Text { text: @tr("Appearance"); width: 100px; vertical-alignment: center; }
+                ComboBox {
+                    model: [@tr("System"), @tr("Light"), @tr("Dark")];
+                    current-index <=> root.color-scheme-index;
+                }
+            }
+            Text {
+                text: @tr("System follows your desktop's light or dark mode.");
+                color: Palette.foreground.with-alpha(0.7);
+                wrap: word-wrap;
+                min-width: 0px;
+            }
+            HorizontalLayout {
+                spacing: 12px;
+                Text { text: @tr("Language"); width: 100px; vertical-alignment: center; }
+                // Language names stay in their own language, so they are not translated.
+                ComboBox {
+                    model: [@tr("System"), "English", "Português (Brasil)"];
+                    current-index <=> root.language-index;
+                }
+            }
+        }
     }
+    HorizontalLayout {
+        spacing: 8px;
+        Button { text: @tr("About"); clicked => { root.show-about(); } }
+        Rectangle { horizontal-stretch: 1; }
+        Button { text: @tr("Close"); primary: true; clicked => { root.dismiss(); } }
+    }
+}
 
-    GridLayout {
-        padding: 12px;
-        spacing: 12px;
-        Row {
-            GroupBox {
-                vertical-stretch: 0;
-                title: @tr("Linked values");
-                VerticalLayout {
-                    alignment: start;
-                    spacing: 8px;
-                    CheckBox { text: @tr("Enabled"); checked <=> root.controls-enabled; }
-                    HorizontalLayout {
-                        spacing: 8px;
-                        slider := Slider {
-                            horizontal-stretch: 1;
-                            min-width: 80px;
-                            maximum: 100;
-                            value: root.level;
-                            enabled: root.controls-enabled;
-                            changed(v) => { root.level = round(v); }
-                        }
-                        SpinBox {
-                            minimum: 0;
-                            maximum: 100;
-                            value <=> root.level;
-                            enabled: root.controls-enabled;
-                        }
-                    }
-                    ProgressIndicator { progress: root.level / 100; }
-                    Text { text: "\{root.level}%"; }
-                }
-            }
-            GroupBox {
-                vertical-stretch: 0;
-                title: @tr("Choice");
-                VerticalLayout {
-                    alignment: start;
-                    spacing: 8px;
-                    size := ComboBox {
-                        model: [@tr("Small"), @tr("Medium"), @tr("Large")];
-                        current-index: 1;
-                        enabled: root.controls-enabled;
-                    }
-                    Text { text: "Aa"; font-size: [12px, 16px, 22px][size.current-index]; }
-                }
-            }
+// Opened from the settings dialog; closing it goes back there.
+component About inherits Dialog {
+    in property <string> version;
+    callback open-website();
+    card-width: 340px;
+
+    HorizontalLayout {
+        alignment: center;
+        Image {
+            source: @image-url("../../../packaging/io.github.OWNER.MyApp.svg");
+            width: 64px;
+            height: 64px;
         }
-        Row {
-            GroupBox {
-                colspan: 2;
-                vertical-stretch: 1;
-                title: @tr("List");
-                VerticalLayout {
-                    spacing: 8px;
-                    HorizontalLayout {
-                        spacing: 8px;
-                        input := LineEdit {
-                            placeholder-text: @tr("New item");
-                            accepted => { root.submit(); }
-                        }
-                        Button { text: @tr("Add"); clicked => { root.submit(); } }
-                    }
-                    if root.items.length == 0: Text {
-                        text: @tr("No items yet");
-                        vertical-stretch: 1;
-                    }
-                    if root.items.length > 0: StandardListView {
-                        model: root.items;
-                        min-height: 80px;
-                    }
-                    Text {
-                        text: root.items.length == 1 ? @tr("1 item") : @tr("{} items", root.items.length);
-                    }
-                }
-            }
-        }
+    }
+    Text { text: "MyApp"; font-size: 20px; font-weight: 700; horizontal-alignment: center; }
+    Text { text: Tr.version(root.version); horizontal-alignment: center; }
+    Text {
+        text: @tr("A light and fast Linux app built with Rust and Slint.");
+        wrap: word-wrap;
+        horizontal-alignment: center;
+    }
+    HorizontalLayout {
+        alignment: end;
+        spacing: 8px;
+        Button { text: @tr("Website"); clicked => { root.open-website(); } }
+        Button { text: @tr("Close"); primary: true; clicked => { root.dismiss(); } }
     }
 }
 
 export component Main inherits Window {
     in-out property <string> name;
     in property <string> version;
+    in-out property <bool> settings-open: false;
     in-out property <bool> about-open: false;
     // The sidebar page; `in-out` so MYAPP_PAGE can open one directly (scripts/ui-snapshot.sh).
     in-out property <int> page: 0;
     in property <[StandardListViewItem]> items;
+    in property <[[StandardListViewItem]]> files;
+    in property <int> files-total;
+    // Which tab of the Widgets page is open; `in-out` for MYAPP_PAGE=<page>.<tab>.
+    in-out property <int> widgets-tab: 0;
+    // The table's search text and filter panel (`in-out`: the snapshots open the panel). Kept here so a key typed
+    // anywhere on the Table tab can be put into the search box before the box has focus.
+    in-out property <string> search;
+    in-out property <bool> filters-open: false;
+    property <bool> search-focused: false;
+    property <int> focus-search: 0;
+    // 0 follows the system, 1 light, 2 dark (settings.theme).
+    in-out property <int> color-scheme-index: 0;
+    // 0 follows the system, 1 English, 2 Português (settings.language).
+    in-out property <int> language-index: 0;
     callback open-website();
     callback add-item(string);
+    callback remove-item(int);
+    callback sort-files(int, bool);
+    callback filter-changed(string, string, bool);
+    // Whether a key press is a character to type (not an arrow, Esc, Space...): decided in Rust.
+    pure callback is-printable(string) -> bool;
+    // So Rust can save the choice at once instead of only on a clean exit.
+    callback theme-changed(int);
+    callback language-changed(int);
     title: "MyApp";
 
-    HorizontalLayout {
-        // Two-way bound to `page`: the sidebar and MYAPP_PAGE drive the same value.
-        StandardListView {
-            width: 140px;
-            model: [{ text: @tr("Hello") }, { text: @tr("Widgets") }];
-            current-item <=> root.page;
+    // Palette.color-scheme is the only palette property an app can set; the colours follow the system accent.
+    function apply-theme() {
+        Palette.color-scheme = root.color-scheme-index == 1 ? ColorScheme.light
+            : root.color-scheme-index == 2 ? ColorScheme.dark : ColorScheme.unknown;
+    }
+    // Table tab (page 1, tab 2): a printable key without Ctrl/Alt/Meta goes into the search box, and Esc empties it
+    // while it has focus (with nothing to clear the key is left alone).
+    function type-to-search(event: KeyEvent) -> EventResult {
+        if root.page == 1 && root.widgets-tab == 2 && root.search-focused && root.search != ""
+            && event.text == Key.Escape {
+            root.search = "";
+            return accept;
         }
-        if root.page == 0: VerticalBox {
-            alignment: center;
-            Text {
-                text: Tr.greeting(root.name != "" ? root.name : @tr("world"));
-                font-size: 24px;
-                // Without this a long unbreakable name sets the minimum width and the window grows.
-                min-width: 0px;
-                wrap: word-wrap;
-                horizontal-alignment: center;
-            }
-            HorizontalLayout {
-                alignment: center;
-                LineEdit { placeholder-text: @tr("Your name"); text <=> root.name; max-width: 320px; }
-            }
-            HorizontalLayout {
-                alignment: center;
-                Button { text: @tr("About"); clicked => { root.about-open = true; } }
-            }
+        if root.page == 1 && root.widgets-tab == 2 && !root.search-focused
+            && !event.modifiers.control && !event.modifiers.alt && !event.modifiers.meta
+            && root.is-printable(event.text) {
+            root.search = root.search + event.text;
+            root.focus-search += 1;
+            return accept;
         }
-        if root.page == 1: WidgetsPage {
-            items: root.items;
-            add-item(t) => { root.add-item(t); }
+        return reject;
+    }
+    init => {
+        root.apply-theme();
+        main-keys.focus();
+    }
+    // A destroyed WidgetsPage cannot report that its search box lost focus.
+    changed page => { root.search-focused = false; }
+    changed color-scheme-index => {
+        root.apply-theme();
+        root.theme-changed(root.color-scheme-index);
+    }
+    changed language-index => { root.language-changed(root.language-index); }
+
+    // Type to search: on the Table tab a printable key goes to the search box even when it is not focused. A
+    // FocusScope sees keys (capture) before the widget that has focus, but only if that widget is inside it, hence
+    // the focus() calls at start-up and when a dialog closes. The dialogs below are outside it on purpose.
+    main-keys := FocusScope {
+        capture-key-pressed(event) => { return root.type-to-search(event); }
+        key-pressed(event) => { return root.type-to-search(event); }
+
+        HorizontalLayout {
+            Rectangle {
+                width: 176px;
+                background: Palette.alternate-background;
+                VerticalLayout {
+                    padding: 8px;
+                    spacing: 8px;
+                    HorizontalLayout {
+                        spacing: 8px;
+                        padding-left: 8px;
+                        padding-top: 4px;
+                        padding-bottom: 4px;
+                        Image {
+                            source: @image-url("../../../packaging/io.github.OWNER.MyApp.svg");
+                            width: 24px;
+                            height: 24px;
+                        }
+                        Text { text: "MyApp"; font-weight: 600; vertical-alignment: center; }
+                        Rectangle { horizontal-stretch: 1; }
+                        // The burger: opens the settings dialog (Appearance, Language, About).
+                        Button {
+                            icon: @image-url("icons/menu.svg");
+                            colorize-icon: true;
+                            clicked => { root.settings-open = true; }
+                        }
+                    }
+                    // Two-way bound to `page`: the sidebar and MYAPP_PAGE drive the same value.
+                    StandardListView {
+                        model: [{ text: @tr("Hello") }, { text: @tr("Widgets") }];
+                        current-item <=> root.page;
+                    }
+                }
+            }
+            if root.page == 0: VerticalLayout {
+                alignment: center;
+                padding: 24px;
+                spacing: 16px;
+                Text {
+                    text: Tr.greeting(root.name != "" ? root.name : @tr("world"));
+                    font-size: 28px;
+                    font-weight: 600;
+                    // Without this a long unbreakable name sets the minimum width and the window grows.
+                    min-width: 0px;
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                }
+                HorizontalLayout {
+                    alignment: center;
+                    LineEdit { placeholder-text: @tr("Your name"); text <=> root.name; preferred-width: 260px; max-width: 320px; }
+                }
+            }
+            if root.page == 1: WidgetsPage {
+                items: root.items;
+                files: root.files;
+                files-total: root.files-total;
+                tab <=> root.widgets-tab;
+                query <=> root.search;
+                filters-open <=> root.filters-open;
+                focus-search: root.focus-search;
+                search-focus-changed(f) => { root.search-focused = f; }
+                add-item(t) => { root.add-item(t); }
+                remove-item(i) => { root.remove-item(i); }
+                sort-files(c, asc) => { root.sort-files(c, asc); }
+                filter-changed(q, k, big) => { root.filter-changed(q, k, big); }
+            }
         }
     }
 
     // Last child, outside the layout, so it draws on top.
+    if root.settings-open: SettingsDialog {
+        width: root.width;
+        height: root.height;
+        color-scheme-index <=> root.color-scheme-index;
+        language-index <=> root.language-index;
+        dismiss => {
+            root.settings-open = false;
+            main-keys.focus();
+        }
+        show-about => {
+            root.settings-open = false;
+            root.about-open = true;
+        }
+    }
+    // Closing About returns to Settings: re-creating the dialog gives its keys focus back, so Esc keeps working.
     if root.about-open: About {
         width: root.width;
         height: root.height;
         version: root.version;
-        dismiss => { root.about-open = false; }
+        dismiss => {
+            root.about-open = false;
+            root.settings-open = true;
+        }
         open-website => { root.open-website(); }
     }
 }

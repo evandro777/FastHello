@@ -63,3 +63,30 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - run: cargo check --locked
+
+  rename:
+    name: Template rename still works
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfontconfig-dev libxkbcommon-dev libxkbcommon-x11-dev libx11-dev libxcb1-dev \
+            appstream desktop-file-utils
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Rename in a scratch copy and build it
+        run: |
+          cp -r . "$RUNNER_TEMP/copy"
+          cd "$RUNNER_TEMP/copy"
+          ./rename.sh testapp TestApp someone
+          rm rename.sh
+          python3 dev/gen_po.py
+          cargo check --locked
+          appstreamcli validate --no-net packaging/io.github.someone.TestApp.metainfo.xml
+          desktop-file-validate packaging/io.github.someone.TestApp.desktop

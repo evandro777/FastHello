@@ -20,10 +20,6 @@ msgid "Your name"
 msgstr "Seu nome"
 
 msgctxt "Main"
-msgid "About"
-msgstr "Sobre"
-
-msgctxt "Main"
 msgid "Hello"
 msgstr "Olá"
 
@@ -31,53 +27,213 @@ msgctxt "Main"
 msgid "Widgets"
 msgstr "Widgets"
 
-msgctxt "WidgetsPage"
-msgid "Linked values"
-msgstr "Valores ligados"
+msgctxt "SettingsDialog"
+msgid "Settings"
+msgstr "Configurações"
+
+msgctxt "SettingsDialog"
+msgid "Appearance"
+msgstr "Aparência"
+
+msgctxt "SettingsDialog"
+msgid "System"
+msgstr "Sistema"
+
+msgctxt "SettingsDialog"
+msgid "Light"
+msgstr "Claro"
+
+msgctxt "SettingsDialog"
+msgid "Dark"
+msgstr "Escuro"
+
+msgctxt "SettingsDialog"
+msgid "System follows your desktop's light or dark mode."
+msgstr "Sistema segue o modo claro ou escuro da sua área de trabalho."
+
+msgctxt "SettingsDialog"
+msgid "Language"
+msgstr "Idioma"
+
+msgctxt "SettingsDialog"
+msgid "About"
+msgstr "Sobre"
 
 msgctxt "WidgetsPage"
-msgid "Enabled"
-msgstr "Ativado"
-
-msgctxt "WidgetsPage"
-msgid "Choice"
-msgstr "Escolha"
-
-msgctxt "WidgetsPage"
-msgid "Small"
-msgstr "Pequeno"
-
-msgctxt "WidgetsPage"
-msgid "Medium"
-msgstr "Médio"
-
-msgctxt "WidgetsPage"
-msgid "Large"
-msgstr "Grande"
+msgid "Inputs"
+msgstr "Entradas"
 
 msgctxt "WidgetsPage"
 msgid "List"
 msgstr "Lista"
 
 msgctxt "WidgetsPage"
+msgid "Table"
+msgstr "Tabela"
+
+msgctxt "WidgetsPage"
+msgid "Feedback"
+msgstr "Progresso"
+
+msgctxt "InputsTab"
+msgid "Linked values"
+msgstr "Valores ligados"
+
+msgctxt "InputsTab"
+msgid "Enabled"
+msgstr "Ativado"
+
+msgctxt "InputsTab"
+msgid "Notifications"
+msgstr "Notificações"
+
+msgctxt "InputsTab"
+msgid "Choice"
+msgstr "Escolha"
+
+msgctxt "InputsTab"
+msgid "Small"
+msgstr "Pequeno"
+
+msgctxt "InputsTab"
+msgid "Medium"
+msgstr "Médio"
+
+msgctxt "InputsTab"
+msgid "Large"
+msgstr "Grande"
+
+msgctxt "InputsTab"
+msgid "Text"
+msgstr "Texto"
+
+msgctxt "InputsTab"
+msgid "Password"
+msgstr "Senha"
+
+msgctxt "InputsTab"
+msgid "Notes"
+msgstr "Anotações"
+
+msgctxt "ListTab"
+msgid "List"
+msgstr "Lista"
+
+msgctxt "ListTab"
 msgid "New item"
 msgstr "Novo item"
 
-msgctxt "WidgetsPage"
+msgctxt "ListTab"
 msgid "Add"
 msgstr "Adicionar"
 
-msgctxt "WidgetsPage"
-msgid "No items yet"
-msgstr "Nenhum item ainda"
+msgctxt "ListTab"
+msgid "Remove"
+msgstr "Remover"
 
-msgctxt "WidgetsPage"
+msgctxt "ListTab"
+msgid "No items yet. Type a name and press Add."
+msgstr "Nenhum item ainda. Digite um nome e clique em Adicionar."
+
+msgctxt "ListTab"
 msgid "1 item"
 msgstr "1 item"
 
-msgctxt "WidgetsPage"
+msgctxt "ListTab"
 msgid "{} items"
 msgstr "{} itens"
+
+msgctxt "TableTab"
+msgid "Files"
+msgstr "Arquivos"
+
+msgctxt "TableTab"
+msgid "Name"
+msgstr "Nome"
+
+msgctxt "TableTab"
+msgid "Type"
+msgstr "Tipo"
+
+msgctxt "TableTab"
+msgid "Size (KB)"
+msgstr "Tamanho (KB)"
+
+msgctxt "TableTab"
+msgid "No files found"
+msgstr "Nenhum arquivo encontrado"
+
+msgctxt "TableTab"
+msgid "No files match the search or filters"
+msgstr "Nenhum arquivo corresponde à pesquisa ou aos filtros"
+
+msgctxt "TableTab"
+msgid "Search files"
+msgstr "Pesquisar arquivos"
+
+msgctxt "TableTab"
+msgid "Filters"
+msgstr "Filtros"
+
+msgctxt "TableTab"
+msgid "Filters ({})"
+msgstr "Filtros ({})"
+
+msgctxt "TableTab"
+msgid "All types"
+msgstr "Todos os tipos"
+
+msgctxt "TableTab"
+msgid "Larger than 1 MB"
+msgstr "Maiores que 1 MB"
+
+msgctxt "TableTab"
+msgid "Clear"
+msgstr "Limpar"
+
+msgctxt "TableTab"
+msgid "1 file"
+msgstr "1 arquivo"
+
+msgctxt "TableTab"
+msgid "{} files"
+msgstr "{} arquivos"
+
+msgctxt "TableTab"
+msgid "{} of {} files"
+msgstr "{} de {} arquivos"
+
+msgctxt "FeedbackTab"
+msgid "Task"
+msgstr "Tarefa"
+
+msgctxt "FeedbackTab"
+msgid "Start task"
+msgstr "Iniciar tarefa"
+
+msgctxt "FeedbackTab"
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgctxt "FeedbackTab"
+msgid "Running…"
+msgstr "Em andamento…"
+
+msgctxt "FeedbackTab"
+msgid "Done"
+msgstr "Concluída"
+
+msgctxt "FeedbackTab"
+msgid "Press Start task to try it."
+msgstr "Clique em Iniciar tarefa para testar."
+
+msgctxt "FeedbackTab"
+msgid "Static examples"
+msgstr "Exemplos estáticos"
+
+msgctxt "SettingsDialog"
+msgid "Close"
+msgstr "Fechar"
 
 msgctxt "About"
 msgid "A light and fast Linux app built with Rust and Slint."

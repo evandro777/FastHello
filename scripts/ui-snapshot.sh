@@ -6,20 +6,23 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Add one entry per sidebar page, with the number the app's `page` property uses.
-declare -A PAGES=([main]=0 [widgets]=1 [about]=about)
+declare -A PAGES=([main]=0 [widgets]=1 [widgets-list]=1.1 [widgets-table]=1.2 [widgets-feedback]=1.3 [settings]=settings [about]=about)
 MODES=${MODES:-"empty single many"}
 OUT=target/ui-snapshots
-DISPLAY_NUM=:99
 mkdir -p "$OUT"
 
 cargo build --quiet
 
-Xvfb "$DISPLAY_NUM" -screen 0 1280x800x24 >/dev/null 2>&1 &
+# Xvfb picks a free display and reports its number, so the script can never capture someone else's screen.
+DISPLAY_FILE=$(mktemp)
+Xvfb -displayfd 3 -screen 0 1280x800x24 3>"$DISPLAY_FILE" >/dev/null 2>&1 &
 XVFB=$!
 APP=
-cleanup() { [ -n "$APP" ] && kill "$APP" 2>/dev/null || true; kill "$XVFB" 2>/dev/null || true; }
+cleanup() { [ -n "$APP" ] && kill "$APP" 2>/dev/null || true; kill "$XVFB" 2>/dev/null || true; rm -f "$DISPLAY_FILE"; }
 trap cleanup EXIT
-sleep 1
+for _ in $(seq 50); do [ -s "$DISPLAY_FILE" ] && break; sleep 0.1; done
+[ -s "$DISPLAY_FILE" ] || { echo "Xvfb did not start" >&2; exit 1; }
+DISPLAY_NUM=:$(head -n1 "$DISPLAY_FILE")
 
 [ $# -gt 0 ] && names=("$@") || names=("${!PAGES[@]}")
 

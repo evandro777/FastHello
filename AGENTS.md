@@ -19,7 +19,7 @@ flatpak/                  manifest, build.sh (vendors crates, builds outside the
 docs/                     landing page (`site/index.html`, deployed with the Flatpak remote), `screenshots/`, FLATPAK-SIGNING.md, FLATHUB.md
 README.md, BUILD.md       what users read / build, settings and details (keep both in step with behaviour)
 dev/gen_po.py             writes the .po files from one table
-scripts/ui-snapshot.sh    renders pages on a private Xvfb with canned data (crates/app/src/fixtures.rs, env MYAPP_FIXTURES=empty|single|many, MYAPP_PAGE=<n>) to target/ui-snapshots/
+scripts/ui-snapshot.sh    renders pages on a private Xvfb with canned data (crates/app/src/fixtures.rs, debug builds only, env MYAPP_FIXTURES=empty|single|many, MYAPP_PAGE=<n>, or <n>.<tab> for a tab of the Widgets page, or `settings` / `about` for the dialogs) to target/ui-snapshots/
 ```
 
 ## Commands
@@ -47,9 +47,19 @@ System deps: `libfontconfig-dev libxkbcommon-dev libxkbcommon-x11-dev libx11-dev
 - Keep dependencies few and light.
 - Slint notes: a `VerticalLayout` inside a `ScrollView` needs `alignment: start`, or a short list spreads its rows over the window; read-only `TextInput` (one per block) makes text selectable; use `content-y` (not `viewport-y`); a callback named `close` shadows a builtin (use `dismiss`); `FocusScope.capture-key-pressed` intercepts keys before `LineEdit`; a wrapped read-only `TextInput` in a nested layout reports one line of height, so give it room with `min-height`, estimated from the available width (a fixed character count leaves a blank band under lines that still fit on one line); `Text` and `TextInput` have no `padding`, so put the space in the parent layout's `spacing` or `padding`.
 
+## Look
+
+- Native Fluent widgets on purpose: apps follow the system accent and light/dark mode. In Slint 1.18 the `Palette` colours are read-only; only `Palette.color-scheme` can be set (the Appearance setting does that). To change a colour you would have to write your own component.
+- The Widgets page is a `TabWidget` (`ui/widgets.slint`, one component per tab inside a `ScrollView`). A `.po` context is the component name: `InputsTab`, `ListTab`, `TableTab`, `FeedbackTab`, `WidgetsPage`, `Main`, `SettingsDialog`, `About`.
+- Tabs, in order (the number is the `<tab>` of `MYAPP_PAGE=1.<tab>`): 0 Inputs, 1 List, 2 Table, 3 Feedback. The Table tab's rows are searched, filtered and sorted in Rust (`FileTable` in `main.rs`: one place keeps the sort, query and filters, so they compose); the tab only holds the controls and calls `filter-changed` / `sort-files`. The `many` fixture opens its Filters panel.
+- Type-to-search: `Main` wraps the page in a `FocusScope` (`main-keys`). Its `capture-key-pressed` sees every key before the focused widget, but only when focus is inside it, so `Main` calls `main-keys.focus()` at start-up and after the Settings dialog closes. On the Table tab a printable key (`is_printable` in `main.rs`: not space, control or arrow codes; no Ctrl/Alt/Meta) is appended to the search text and the search box is focused (`focus-search` counter, caret moved to the end). It steps aside when the search box already has focus (`search-focused`, otherwise it would swallow the key), except for Esc, which empties a non-empty search (the same function handles it, so no `FocusScope` is wrapped around the `LineEdit`). Verify with real keys on a private Xvfb (`xdotool key/type`, no coordinates), not only snapshots.
+- Snapshots are 600x450 and cannot scroll, so a tab taller than that is only partly visible. To see all of it, render with a taller window: put `height = 900` in a `settings.toml` under a scratch `XDG_DATA_HOME` and run the script with that variable set.
+- `LANGUAGE` (often `en_US` on a dev machine) beats `LANG`: to check a translation run the script with `LC_ALL=pt_BR.UTF-8 LANGUAGE=`.
+
 ## Dialogs
 
-- Dialogs (About) are in-window overlays (`component About` as the last child of `Main`), not second windows: closing Main always ends the app and `scripts/ui-snapshot.sh` can capture them (`MYAPP_PAGE=about`). Its version comes from `CARGO_PKG_VERSION`, the Website button opens `CARGO_PKG_REPOSITORY` with `xdg-open`.
+- Dialogs are in-window overlays (the last children of `Main`), not second windows: closing Main always ends the app and `scripts/ui-snapshot.sh` can capture them (`MYAPP_PAGE=settings|about`). They share one shell, `component Dialog` (dim background, Esc, Tab trap, card capped to the window height); a new dialog inherits it and puts its content inside. `SettingsDialog` (burger button in the sidebar header) holds Appearance and Language plus an About button; `About` opens from it and closing About returns to Settings (re-creating Settings gives its keys focus back, so Esc keeps working). The About version comes from `CARGO_PKG_VERSION`, the Website button opens `CARGO_PKG_REPOSITORY` with `xdg-open`. A `ScrollView` does not report its content's height, hence the explicit `preferred-height` in the settings card.
+- Theme and language are saved the moment they change (`theme-changed` / `language-changed`, skipped when the value equals the stored one so start-up never writes); window size only on a normal exit. An unknown locale falls back to the English source strings (`select_language` in `main.rs`).
 
 ## Translations
 
@@ -91,7 +101,7 @@ Release gotchas (each one broke a first release):
 App id `io.github.OWNER.MyApp`; `flatpak/build.sh --devel` installs `...MyApp.Devel` next to a release. Needs `flatpak-builder` and `org.freedesktop.Sdk//25.08` + `org.freedesktop.Sdk.Extension.rust-stable//25.08`. The runtime version `25.08` appears in five places (the manifest, the container image tag, the rust-stable install and its `GITHUB_PATH` line in `flatpak.yml`, and the header of `flatpak/build.sh`): bump them together.
 
 - Auto-update = our own signed OSTree remote on GitHub Pages (`flatpak.yml`: `bundle` → `pages` → `release`), deployed on `v*` tags only. Every deploy replaces the whole site, so never deploy Pages from another trigger. The public key is `flatpak/signing-key.b64` (base64 of the binary export, made by `flatpak/new-signing-key.sh`; the template ships none); the private half is the secret `FLATPAK_GPG_PRIVATE_KEY`. See `docs/FLATPAK-SIGNING.md`.
-- Keep `finish-args` minimal (the manifest says how for X11-only apps and trays). The build vendors crates (`cargo vendor`), so `flatpak/vendor` must not be in the manifest's `skip:`. Keep build dirs out of Dropbox-synced folders.
+- Keep `finish-args` minimal (the manifest says how for X11-only apps and trays). The build vendors crates (`cargo vendor`), so `flatpak/vendor` must not be in the manifest's `skip:`.
 - Patterns to copy when an app needs them (FastPaste has each one working): inside the sandbox `FLATPAK_ID` is set. A single-instance Unix socket must live in `$XDG_RUNTIME_DIR/app/$FLATPAK_ID/`, the only directory shared between `flatpak run`s. A ksni tray needs `.disable_dbus_name(true)` there. Start at login must go through the Background portal (`org.freedesktop.portal.Background.RequestBackground`, blocking, so from a thread), not a file in `~/.config`. A host command (for example `tesseract`) is reachable only through `flatpak-spawn --host`, which needs the user's own opt-in `flatpak override --talk-name=org.freedesktop.Flatpak`: never put that in the manifest.
 - **Flathub policy:** manifests must NOT contain AI-generated content and AI must not open the submission PR. Do not write a Flathub manifest or submission text for the owner; `docs/FLATHUB.md` explains the process.
 

@@ -4,10 +4,10 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 crate=$1 name=$2 owner=$3
-[[ $crate =~ ^[a-z][a-z0-9_-]*$ && $name =~ ^[A-Za-z][A-Za-z0-9]*$ && $owner =~ ^[A-Za-z0-9-]+$ ]] || { echo "bad name"; exit 1; }
+[[ $crate =~ ^[a-z][a-z0-9_]*$ && $name =~ ^[A-Za-z][A-Za-z0-9]*$ && $owner =~ ^[A-Za-z0-9-]+$ ]] || { echo "bad name"; exit 1; }
 old_id=io.github.OWNER.MyApp new_id=io.github.$owner.$name
-# Env var prefix of the fixtures (MYAPP_FIXTURES, MYAPP_PAGE): upper case, and `-` is not allowed in a variable name.
-env_prefix=$(echo "$crate" | tr 'a-z-' 'A-Z_')
+# Env var prefix of the fixtures (MYAPP_FIXTURES, MYAPP_PAGE). No `-` in the crate name: `myapp_core` would become an invalid identifier.
+env_prefix=${crate^^}
 # Needs a git repository (`git init && git add -A` in a fresh copy): the file list comes from git. Binary files
 # (the icon and screenshots) and local settings are left alone.
 # GitHub Pages host names are lower case (OWNER.github.io), so that rule runs before the generic OWNER one.
@@ -16,6 +16,8 @@ git ls-files -z --cached --others --exclude-standard | grep -zvE '^rename\.sh$|\
   -e "s/io\.github\.owner\"/io.github.${owner,,}\"/g" -e "s/OWNER\.github\.io/${owner,,}.github.io/g" -e "s/OWNER/$owner/g"
 for f in packaging/$old_id.*; do mv "$f" "${f/$old_id/$new_id}"; done
 mv "flatpak/$old_id.yml" "flatpak/$new_id.yml"
+# The template's public signing key must not be reused: step 4 below generates a fresh one for the new app.
+rm -f flatpak/signing-key.b64
 for po in crates/app/translations/*/LC_MESSAGES/myapp.po; do mv "$po" "${po/myapp.po/$crate.po}"; done
 cat <<EOF
 Done. Now:

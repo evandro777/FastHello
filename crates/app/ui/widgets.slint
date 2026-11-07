@@ -1,0 +1,385 @@
+import {
+    Button, CheckBox, ComboBox, GroupBox, LineEdit, Palette, ProgressIndicator, RadioGroup, ScrollView, Slider,
+    SpinBox, Spinner, StandardListView, StandardTableView, Switch, TabWidget, TextEdit,
+} from "std-widgets.slint";
+
+// Every tab is a ScrollView over a `VerticalLayout { alignment: start }`: a short page keeps its natural row
+// heights instead of spreading, and a tall one scrolls when the window is small.
+
+// Widgets that affect each other: a checkbox enables the rest, one value drives three widgets.
+component InputsTab inherits ScrollView {
+    property <bool> controls-enabled: true;
+    // One int shared by SpinBox (int) and Slider (float); `<=>` between them would not compile.
+    property <int> level: 50;
+    property <int> size-index: 1;
+
+    // Dragging the slider overwrites its `value` binding, so push later changes (SpinBox) back by hand.
+    changed level => { slider.value = root.level; }
+
+    VerticalLayout {
+        alignment: start;
+        padding: 12px;
+        spacing: 12px;
+        GroupBox {
+            title: @tr("Linked values");
+            VerticalLayout {
+                spacing: 8px;
+                CheckBox { text: @tr("Enabled"); checked <=> root.controls-enabled; }
+                HorizontalLayout {
+                    spacing: 12px;
+                    slider := Slider {
+                        horizontal-stretch: 1;
+                        min-width: 80px;
+                        maximum: 100;
+                        value: root.level;
+                        enabled: root.controls-enabled;
+                        changed(v) => { root.level = round(v); }
+                    }
+                    SpinBox {
+                        width: 110px;
+                        minimum: 0;
+                        maximum: 100;
+                        value <=> root.level;
+                        enabled: root.controls-enabled;
+                    }
+                }
+                ProgressIndicator { progress: root.level / 100; }
+                Text { text: "\{root.level}%"; color: Palette.foreground.with-alpha(0.7); }
+                Switch { text: @tr("Notifications"); enabled: root.controls-enabled; }
+            }
+        }
+        GroupBox {
+            title: @tr("Choice");
+            HorizontalLayout {
+                spacing: 24px;
+                RadioGroup {
+                    orientation: Orientation.horizontal;
+                    enabled: root.controls-enabled;
+                    RadioButton { text: @tr("Small"); toggled => { if self.checked { root.size-index = 0; } } }
+                    RadioButton { text: @tr("Medium"); checked: true; toggled => { if self.checked { root.size-index = 1; } } }
+                    RadioButton { text: @tr("Large"); toggled => { if self.checked { root.size-index = 2; } } }
+                }
+                Text {
+                    text: "Aa";
+                    font-size: [12px, 16px, 22px][root.size-index];
+                    vertical-alignment: center;
+                }
+            }
+        }
+        GroupBox {
+            title: @tr("Text");
+            VerticalLayout {
+                spacing: 8px;
+                LineEdit {
+                    placeholder-text: @tr("Password");
+                    input-type: InputType.password;
+                    enabled: root.controls-enabled;
+                }
+                TextEdit {
+                    placeholder-text: @tr("Notes");
+                    min-height: 80px;
+                    enabled: root.controls-enabled;
+                }
+            }
+        }
+    }
+}
+
+component ListTab inherits ScrollView {
+    in property <[StandardListViewItem]> items;
+    callback add-item(string);
+    callback remove-item(int);
+    property <int> selected: -1;
+
+    function submit() {
+        if !input.text.is-empty {
+            root.add-item(input.text);
+            input.text = "";
+        }
+    }
+
+    VerticalLayout {
+        alignment: start;
+        padding: 12px;
+        spacing: 12px;
+        GroupBox {
+            title: @tr("List");
+            VerticalLayout {
+                spacing: 8px;
+                HorizontalLayout {
+                    spacing: 8px;
+                    input := LineEdit {
+                        placeholder-text: @tr("New item");
+                        accepted => { root.submit(); }
+                    }
+                    Button { text: @tr("Add"); enabled: !input.text.is-empty; clicked => { root.submit(); } }
+                }
+                Rectangle {
+                    height: 140px;
+                    if root.items.length == 0: Text {
+                        text: @tr("No items yet. Type a name and press Add.");
+                        color: Palette.foreground.with-alpha(0.7);
+                        wrap: word-wrap;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    if root.items.length > 0: StandardListView {
+                        model: root.items;
+                        current-item <=> root.selected;
+                    }
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    Text {
+                        text: root.items.length == 1 ? @tr("1 item") : @tr("{} items", root.items.length);
+                        vertical-alignment: center;
+                        horizontal-stretch: 1;
+                    }
+                    Button {
+                        text: @tr("Remove");
+                        enabled: root.selected >= 0 && root.selected < root.items.length;
+                        clicked => {
+                            root.remove-item(root.selected);
+                            root.selected = -1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// A searchable, filterable, sortable table. The rows are filtered and sorted in Rust (the model is already there);
+// this tab only holds the controls. Typing anywhere on this tab lands in the search box (see Main).
+component TableTab inherits ScrollView {
+    // The rows that pass the search and filters, and how many there are before filtering.
+    in property <[[StandardListViewItem]]> files;
+    in property <int> files-total;
+    in-out property <string> query;
+    in-out property <bool> filters-open;
+    // Counts up when Main wants the search box focused (a key was typed while it was not).
+    in property <int> focus-search;
+    property <bool> search-focused: input.has-focus;
+    // Main needs to know, or it would swallow keys meant for the focused search box.
+    callback search-focus-changed(bool);
+    changed search-focused => { root.search-focus-changed(root.search-focused); }
+    callback sort-files(int, bool);
+    // Search text, type ("" = all types) and "only large files".
+    callback filter-changed(string, string, bool);
+    property <bool> big-only: false;
+    property <int> active-filters: (kind.current-index != 0 ? 1 : 0) + (root.big-only ? 1 : 0);
+
+    function refilter() {
+        root.filter-changed(root.query, kind.current-index == 0 ? "" : kind.current-value, root.big-only);
+    }
+    changed query => { root.refilter(); }
+    // Main has already put the typed character into `query`; the caret goes after it, not before.
+    changed focus-search => {
+        input.focus();
+        input.set-selection-offsets(100000, 100000);
+    }
+
+    VerticalLayout {
+        alignment: start;
+        padding: 12px;
+        spacing: 12px;
+        GroupBox {
+            title: @tr("Files");
+            VerticalLayout {
+                spacing: 8px;
+                // Zero spacing: when the panel is closed it must take no room at all, not even a gap.
+                VerticalLayout {
+                    spacing: 0px;
+                    HorizontalLayout {
+                        spacing: 8px;
+                        input := LineEdit {
+                            placeholder-text: @tr("Search files");
+                            text <=> root.query;
+                        }
+                        Button {
+                            text: root.active-filters > 0 ? @tr("Filters ({})", root.active-filters) : @tr("Filters");
+                            checkable: true;
+                            checked <=> root.filters-open;
+                        }
+                    }
+                    Rectangle { height: root.filters-open ? 8px : 0px; }
+                    // Always instantiated (only hidden): `refilter` reads the ComboBox below.
+                    Rectangle {
+                        visible: root.filters-open;
+                        height: root.filters-open ? panel.preferred-height : 0px;
+                        background: Palette.alternate-background;
+                        border-radius: 4px;
+                        panel := VerticalLayout {
+                            padding: 8px;
+                            spacing: 8px;
+                            HorizontalLayout {
+                                spacing: 8px;
+                                Text { text: @tr("Type"); vertical-alignment: center; }
+                                // The sample's file types; a real app would build this from its data.
+                                kind := ComboBox {
+                                    model: [@tr("All types"), "txt", "png", "pdf", "gz", "ogg", "md"];
+                                    selected => { root.refilter(); }
+                                }
+                            }
+                            HorizontalLayout {
+                                spacing: 8px;
+                                CheckBox {
+                                    text: @tr("Larger than 1 MB");
+                                    checked <=> root.big-only;
+                                    toggled => { root.refilter(); }
+                                }
+                                Rectangle { horizontal-stretch: 1; }
+                                Button {
+                                    text: @tr("Clear");
+                                    enabled: root.active-filters > 0;
+                                    clicked => {
+                                        kind.current-index = 0;
+                                        root.big-only = false;
+                                        root.refilter();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if root.files.length == 0: Text {
+                    text: root.files-total == 0 ? @tr("No files found") : @tr("No files match the search or filters");
+                    color: Palette.foreground.with-alpha(0.7);
+                    horizontal-alignment: center;
+                    wrap: word-wrap;
+                    height: 60px;
+                }
+                if root.files.length > 0: StandardTableView {
+                    height: 200px;
+                    columns: [{ title: @tr("Name") }, { title: @tr("Type") }, { title: @tr("Size (KB)") }];
+                    rows: root.files;
+                    sort-ascending(column) => { root.sort-files(column, true); }
+                    sort-descending(column) => { root.sort-files(column, false); }
+                }
+                Text {
+                    text: root.files.length != root.files-total ? @tr("{} of {} files", root.files.length, root.files-total)
+                        : root.files-total == 1 ? @tr("1 file") : @tr("{} files", root.files-total);
+                    color: Palette.foreground.with-alpha(0.7);
+                }
+            }
+        }
+    }
+}
+
+component FeedbackTab inherits ScrollView {
+    property <bool> running: false;
+    property <bool> finished: false;
+    property <float> progress: 0;
+
+    // Only ticks while a task runs, so an idle page costs nothing.
+    Timer {
+        interval: 100ms;
+        running: root.running;
+        triggered => {
+            root.progress = min(1, root.progress + 1 / 30);
+            if root.progress >= 1 {
+                root.running = false;
+                root.finished = true;
+            }
+        }
+    }
+
+    VerticalLayout {
+        alignment: start;
+        padding: 12px;
+        spacing: 12px;
+        GroupBox {
+            title: @tr("Task");
+            VerticalLayout {
+                spacing: 8px;
+                HorizontalLayout {
+                    alignment: start;
+                    spacing: 12px;
+                    Button {
+                        text: root.running ? @tr("Cancel") : @tr("Start task");
+                        primary: !root.running;
+                        clicked => {
+                            if root.running {
+                                root.running = false;
+                                root.progress = 0;
+                            } else {
+                                root.progress = 0;
+                                root.finished = false;
+                                root.running = true;
+                            }
+                        }
+                    }
+                    if root.running: Spinner { indeterminate: true; }
+                }
+                ProgressIndicator { progress: root.progress; }
+                Text {
+                    text: root.running ? @tr("Running…") : root.finished ? @tr("Done") : @tr("Press Start task to try it.");
+                    color: Palette.foreground.with-alpha(0.7);
+                }
+            }
+        }
+        GroupBox {
+            title: @tr("Static examples");
+            HorizontalLayout {
+                spacing: 12px;
+                // The bar would stretch to the spinner's height without this.
+                VerticalLayout {
+                    alignment: center;
+                    horizontal-stretch: 1;
+                    ProgressIndicator { progress: 0.6; }
+                }
+                Spinner { progress: 0.6; }
+            }
+        }
+    }
+}
+
+export component WidgetsPage inherits Rectangle {
+    in property <[StandardListViewItem]> items;
+    in property <[[StandardListViewItem]]> files;
+    in property <int> files-total;
+    // `in-out` so MYAPP_PAGE=<page>.<tab> can open a tab directly (scripts/ui-snapshot.sh).
+    in-out property <int> tab: 0;
+    // The table's search text and filter panel live in Main: it types into the search box and the snapshots open the panel.
+    in-out property <string> query;
+    in-out property <bool> filters-open;
+    in property <int> focus-search;
+    callback search-focus-changed(bool);
+    callback add-item(string);
+    callback remove-item(int);
+    callback sort-files(int, bool);
+    callback filter-changed(string, string, bool);
+
+    TabWidget {
+        current-index <=> root.tab;
+        Tab {
+            title: @tr("Inputs");
+            InputsTab { }
+        }
+        Tab {
+            title: @tr("List");
+            ListTab {
+                items: root.items;
+                add-item(t) => { root.add-item(t); }
+                remove-item(i) => { root.remove-item(i); }
+            }
+        }
+        Tab {
+            title: @tr("Table");
+            TableTab {
+                files: root.files;
+                search-focus-changed(f) => { root.search-focus-changed(f); }
+                files-total: root.files-total;
+                query <=> root.query;
+                filters-open <=> root.filters-open;
+                focus-search: root.focus-search;
+                sort-files(c, asc) => { root.sort-files(c, asc); }
+                filter-changed(q, k, big) => { root.filter-changed(q, k, big); }
+            }
+        }
+        Tab {
+            title: @tr("Feedback");
+            FeedbackTab { }
+        }
+    }
+}
