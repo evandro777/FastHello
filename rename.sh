@@ -24,6 +24,7 @@ Done. Now:
   1. delete rename.sh, run python3 dev/gen_po.py, cargo build
   2. rewrite README.md, AGENTS.md ("What this is", "Open items"), docs/site/index.html and the metainfo description
      (search for "EDIT"), and replace docs/screenshots/main.png with a real screenshot
+  2b. draw the app icon in packaging/ following docs/ICON-STYLE.md (new tile color and symbol, then regenerate the PNG)
   3. create the GitHub repository named exactly $name (the Pages URL and the AppImage update information assume it)
   4. flatpak/new-signing-key.sh, then do the one-time setup in RELEASING.md before the first tag
 EOF

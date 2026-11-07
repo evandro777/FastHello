@@ -16,7 +16,7 @@ crates/app/               Slint UI + main.rs; build.rs compiles ui/ and bundles 
 packaging/                .desktop, SVG icon, 256px PNG icon (the AppImage .DirIcon), metainfo (AppImage, Flatpak and CI validation)
 appimage/build.sh         AppImage + .zsync (host libs, not bundled); CI: appimage.yml
 flatpak/                  manifest, build.sh (vendors crates, builds outside the repo: `~/.cache/myapp-flatpak`), new-signing-key.sh, signing-key.b64 (public half, after you run it); CI: flatpak.yml
-docs/                     landing page (`site/index.html`, deployed with the Flatpak remote), `screenshots/`, FLATPAK-SIGNING.md, FLATHUB.md
+docs/                     landing page (`site/index.html`, deployed with the Flatpak remote), `screenshots/`, FLATPAK-SIGNING.md, FLATHUB.md, ICON-STYLE.md (the shared icon rules of the Fast apps)
 README.md, BUILD.md       what users read / build, settings and details (keep both in step with behaviour)
 dev/gen_po.py             writes the .po files from one table
 scripts/ui-snapshot.sh    renders pages on a private Xvfb with canned data (crates/app/src/fixtures.rs, debug builds only, env MYAPP_FIXTURES=empty|single|many, MYAPP_PAGE=<n>, or <n>.<tab> for a tab of the Widgets page, or `settings` / `about` for the dialogs) to target/ui-snapshots/
@@ -93,7 +93,7 @@ Release gotchas (each one broke a first release):
 
 - Bump the version in `Cargo.toml`, then run `cargo check` and commit `Cargo.lock`: CI uses `--locked`, so a stale lock fails every job.
 - The metainfo needs a `<release version="X">` for the tag, or `flatpak.yml` fails.
-- `appimagetool` builds `.DirIcon` from a PNG at the AppDir root, not from the SVG. Regenerate `packaging/io.github.OWNER.MyApp.png` when the SVG changes: `convert -background none -density 384 packaging/io.github.OWNER.MyApp.svg -resize 256x256 packaging/io.github.OWNER.MyApp.png`.
+- `appimagetool` builds `.DirIcon` from a PNG at the AppDir root, not from the SVG. The icon must follow `docs/ICON-STYLE.md` (the same tile shape for every Fast app, flat colors only). Regenerate `packaging/io.github.OWNER.MyApp.png` when the SVG changes: `convert -background none -density 384 packaging/io.github.OWNER.MyApp.svg -resize 256x256 packaging/io.github.OWNER.MyApp.png`.
 - The first tag needs the one-time setup in `RELEASING.md`: the signing key and its secret, Pages, and the `v*` tag rule on the `github-pages` environment.
 
 ## Flatpak
