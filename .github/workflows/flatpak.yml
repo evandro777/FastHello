@@ -105,7 +105,7 @@ jobs:
           path: site
       - name: Describe the remote
         run: |
-          # Taken from GITHUB_REPOSITORY, not from the dedicated owner variable: rename.sh rewrites that variable's name.
+          # Taken from GITHUB_REPOSITORY, not from the dedicated owner variable: prepare.sh rewrites that variable's name.
           account=${GITHUB_REPOSITORY%%/*}
           cat > site/myapp.flatpakrepo <<EOF
           [Flatpak Repo]

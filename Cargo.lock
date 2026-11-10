@@ -2405,7 +2405,7 @@ dependencies = [
 
 [[package]]
 name = "myapp"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "myapp-core",
  "slint",
@@ -2414,7 +2414,7 @@ dependencies = [
 
 [[package]]
 name = "myapp-core"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "serde",
  "toml",
@@ -3695,6 +3695,7 @@ dependencies = [
  "const-field-offset",
  "i-slint-backend-linuxkms",
  "i-slint-backend-selector",
+ "i-slint-backend-winit",
  "i-slint-common",
  "i-slint-core",
  "i-slint-core-macros",

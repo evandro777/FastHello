@@ -6,6 +6,7 @@ slint::include_modules!();
 
 #[cfg(debug_assertions)]
 mod fixtures;
+mod instance;
 
 /// One row of the "Files" table on the Widgets page: sample data that shows sorting by a text and a numeric column.
 #[derive(Clone)]
@@ -125,6 +126,15 @@ fn main() {
     if std::env::args().skip(1).any(|a| a == "-V" || a == "--version") {
         return println!("myapp {}", env!("CARGO_PKG_VERSION"));
     }
+    // Fixtures (scripts/ui-snapshot.sh) never touch a real running instance. Debug builds only, like the fixtures.
+    #[cfg(debug_assertions)]
+    let fixture_run = fixtures::mode().is_some();
+    #[cfg(not(debug_assertions))]
+    let fixture_run = false;
+    // One window: a copy is already open, so it comes to the front and this one leaves before setting anything up.
+    if !fixture_run && instance::send("show") {
+        return;
+    }
     // Forced so the 100 MB GL renderer is never pulled in by accident.
     slint::BackendSelector::new()
         .backend_name("winit".into())
@@ -134,6 +144,16 @@ fn main() {
 
     let settings = Settings::load();
     let ui = Main::new().unwrap();
+    // Take the socket now that the window exists; a later start sends "show" and this window is raised.
+    if !fixture_run {
+        let weak = ui.as_weak();
+        let raise = move |_command: String| {
+            let _ = weak.upgrade_in_event_loop(|ui| instance::raise(ui.window()));
+        };
+        if instance::claim("show", raise) {
+            return;
+        }
+    }
     // One model for the whole run: the add-item closure and the fixtures must push into the same one.
     let items = Rc::new(VecModel::<StandardListViewItem>::default());
     ui.set_items(items.clone().into());
@@ -187,11 +207,7 @@ fn main() {
         show(&table, &files_model);
     });
     ui.on_is_printable(|text| is_printable(&text));
-    ui.set_color_scheme_index(match settings.theme.as_str() {
-        "light" => 1,
-        "dark" => 2,
-        _ => 0,
-    });
+    ui.set_color_scheme_index(theme_index(&settings.theme));
     let settings = Rc::new(RefCell::new(settings));
     // Saved as soon as it changes: a killed session would otherwise lose the choice.
     ui.on_theme_changed({
@@ -278,13 +294,17 @@ fn select_language(code: &str) {
     }
 }
 
-/// The `settings.theme` value for the Appearance index (0 system, 1 light, 2 dark).
+/// `settings.theme` for each entry of the Appearance list: system, light, dark.
+const THEMES: [&str; 3] = ["", "light", "dark"];
+
+/// The Appearance list index of a `settings.theme` value; anything unknown follows the system.
+fn theme_index(theme: &str) -> i32 {
+    THEMES.iter().position(|t| *t == theme).unwrap_or(0) as i32
+}
+
+/// The `settings.theme` value for an Appearance list index.
 fn theme_name(index: i32) -> &'static str {
-    match index {
-        1 => "light",
-        2 => "dark",
-        _ => "",
-    }
+    THEMES.get(index as usize).copied().unwrap_or("")
 }
 
 /// `settings.language`, or the system locale (`LC_ALL`/`LC_MESSAGES`/`LANGUAGE`/`LANG`, minus `.UTF-8`).
@@ -311,6 +331,15 @@ mod tests {
 
     fn names(rows: &[FileRow]) -> Vec<&str> {
         rows.iter().map(|f| f.name.as_str()).collect()
+    }
+
+    #[test]
+    fn themes_and_their_indexes_agree() {
+        for (i, t) in THEMES.iter().enumerate() {
+            assert_eq!(theme_index(t), i as i32);
+            assert_eq!(theme_name(i as i32), *t);
+        }
+        assert_eq!(theme_index("bogus"), 0);
     }
 
     #[test]

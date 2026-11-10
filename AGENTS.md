@@ -1,7 +1,8 @@
 # AGENTS.md: MyApp
 
-Notes for AI agents and contributors. Read this before changing anything. (Template: run `./rename.sh`, then rewrite
-"What this is" and "Open items" for the real app.)
+Notes for AI agents and contributors. Read this before changing anything.
+
+> Template note: run `./prepare.sh <crate> <DisplayName> <github-owner>`, then rewrite "What this is" and "Open items" for the real app.
 
 ## What this is
 
@@ -13,10 +14,12 @@ A **light and fast** Linux desktop app in Rust + Slint. Priorities: fast start, 
 Cargo.toml                workspace, release/fast profiles
 crates/core/              UI-independent logic (settings.rs). No Slint here, so a CLI can reuse it
 crates/app/               Slint UI + main.rs; build.rs compiles ui/ and bundles translations/
+crates/app/src/instance.rs  one window: a second start sends `show` over `$XDG_RUNTIME_DIR/<crate>.sock` and exits; the running one is raised. Identical in every Fast app (this is the master): change it here and copy it to the others
+crates/core/src/files.rs  private (0700/0600) atomic writes and `read_or_backup` (a bad file is kept as `<name>.bad.<time>`, never over an older backup). Identical in every Fast app (this is the master): change it here and copy it to the others
 packaging/                .desktop, SVG icon, 256px PNG icon (the AppImage .DirIcon), metainfo (AppImage, Flatpak and CI validation)
 appimage/build.sh         AppImage + .zsync (host libs, not bundled); CI: appimage.yml
 flatpak/                  manifest, build.sh (vendors crates, builds outside the repo: `~/.cache/myapp-flatpak`), new-signing-key.sh, signing-key.b64 (public half, after you run it); CI: flatpak.yml
-docs/                     landing page (`site/index.html`, deployed with the Flatpak remote), `screenshots/`, FLATPAK-SIGNING.md, FLATHUB.md, ICON-STYLE.md (the shared icon rules of the Fast apps)
+docs/                     landing page (`site/index.html`, deployed with the Flatpak remote), `screenshots/`, FLATPAK-SIGNING.md, FLATHUB.md, ICON-STYLE.md and UI-STYLE.md (the shared icon and window rules of the Fast apps; the UI values live in `crates/app/ui/family.slint`, and the About card and Preferences row in `about.slint`; both are copied verbatim into every app, together with `controls.slint` (`TabBar`, `TabItem`, `MenuButton`, `CloseButton`, `StepButton`, `PlusIcon`, `AlertIcon`, `Icon`, `NeutralBadge`, `FilterBar`, `SearchBox`; the Widgets page shows the last four), and the shared icons in `ui/icons/`)
 README.md, BUILD.md       what users read / build, settings and details (keep both in step with behaviour)
 dev/gen_po.py             writes the .po files from one table
 scripts/ui-snapshot.sh    renders pages on a private Xvfb with canned data (crates/app/src/fixtures.rs, debug builds only, env MYAPP_FIXTURES=empty|single|many, MYAPP_PAGE=<n>, or <n>.<tab> for a tab of the Widgets page, or `settings` / `about` for the dialogs) to target/ui-snapshots/
@@ -50,7 +53,7 @@ System deps: `libfontconfig-dev libxkbcommon-dev libxkbcommon-x11-dev libx11-dev
 ## Look
 
 - Native Fluent widgets on purpose: apps follow the system accent and light/dark mode. In Slint 1.18 the `Palette` colours are read-only; only `Palette.color-scheme` can be set (the Appearance setting does that). To change a colour you would have to write your own component.
-- The Widgets page is a `TabWidget` (`ui/widgets.slint`, one component per tab inside a `ScrollView`). A `.po` context is the component name: `InputsTab`, `ListTab`, `TableTab`, `FeedbackTab`, `WidgetsPage`, `Main`, `SettingsDialog`, `About`.
+- The Widgets page is the kit's `TabBar` of `TabItem`s over four stacked pages that are only hidden with `visible`, not Fluent's `TabWidget` (`ui/widgets.slint`, one component per tab inside a `ScrollView`). A `.po` context is the component name: `InputsTab`, `ListTab`, `TableTab`, `FeedbackTab`, `WidgetsPage`, `Main`, `SettingsDialog`, `About`.
 - Tabs, in order (the number is the `<tab>` of `MYAPP_PAGE=1.<tab>`): 0 Inputs, 1 List, 2 Table, 3 Feedback. The Table tab's rows are searched, filtered and sorted in Rust (`FileTable` in `main.rs`: one place keeps the sort, query and filters, so they compose); the tab only holds the controls and calls `filter-changed` / `sort-files`. The `many` fixture opens its Filters panel.
 - Type-to-search: `Main` wraps the page in a `FocusScope` (`main-keys`). Its `capture-key-pressed` sees every key before the focused widget, but only when focus is inside it, so `Main` calls `main-keys.focus()` at start-up and after the Settings dialog closes. On the Table tab a printable key (`is_printable` in `main.rs`: not space, control or arrow codes; no Ctrl/Alt/Meta) is appended to the search text and the search box is focused (`focus-search` counter, caret moved to the end). It steps aside when the search box already has focus (`search-focused`, otherwise it would swallow the key), except for Esc, which empties a non-empty search (the same function handles it, so no `FocusScope` is wrapped around the `LineEdit`). Verify with real keys on a private Xvfb (`xdotool key/type`, no coordinates), not only snapshots.
 - Snapshots are 600x450 and cannot scroll, so a tab taller than that is only partly visible. To see all of it, render with a taller window: put `height = 900` in a `settings.toml` under a scratch `XDG_DATA_HOME` and run the script with that variable set.
@@ -66,6 +69,7 @@ System deps: `libfontconfig-dev libxkbcommon-dev libxkbcommon-x11-dev libx11-dev
 - UI strings use `@tr()`; strings built in Rust go through the `Tr` global in `ui/main.slint`. Never `format!` user-visible text in Rust.
 - `.po` files are generated by `dev/gen_po.py` (edit its table, run it, commit both). Slint's gettext context is the component name (`Main`, `Tr`). A new `@tr` string needs an entry in every language. A string with a count needs its own singular string for `n == 1` ("1 connection", not "1 connections"), with its own entry.
 - Language = `settings.language` (`""` = system locale).
+- Appearance = `settings.theme` (`""` = follow the system, `"light"`, `"dark"`). The Appearance box sets `Palette.color-scheme` in the `.slint` (`unknown` hands it back to the desktop). `THEMES` and `theme_index` in `crates/app/src/main.rs` keep the order of that list, and a test checks they agree. `Family.dark` reads the drawn background, so it stays right in every state.
 
 ## Conventions
 
@@ -83,6 +87,7 @@ System deps: `libfontconfig-dev libxkbcommon-dev libxkbcommon-x11-dev libx11-dev
 
 - After any Slint UI change, run `scripts/ui-snapshot.sh <page>` and read the PNGs (empty, single, many) before saying the change is done. It uses a private Xvfb and canned data, so it never reads or changes the real system.
 - Specifically check: rows don't stretch when a list has 1 item, badges and buttons are right-aligned, icons are sharp, items with no icon get a placeholder so headers stay aligned, vertical gaps between rows of one kind are even, counts read right at 1 ("1 items"), a name already in a header is not repeated in every row under it, text is selectable as a block, and empty or error states (e.g. "nothing found") don't throw errors.
+- Controls in a row are the same height (32 px); tabs, search boxes and dialog cards use the kit's components (`TabBar`, `SearchBox`, the card in `docs/UI-STYLE.md`).
 - If you can't launch it (e.g. the flow needs pkexec or a live X11 session), say so explicitly and list what I should test manually.
 
 ## GitHub flow and releases

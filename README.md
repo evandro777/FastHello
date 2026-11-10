@@ -9,7 +9,7 @@
 
 Light and fast Linux app built with Rust + [Slint](https://slint.dev) (software renderer, no GL).
 
-> Template note: this repository started from a template. Run `./rename.sh <crate> <DisplayName> <github-owner>` once, then rewrite this README, `AGENTS.md` ("What this is", "Open items"), `docs/site/index.html` and the metainfo description for the real app, and delete this note.
+> Template note: this repository started from a template. Run `./prepare.sh <crate> <DisplayName> <github-owner>` once (it renames, resets the version to 0.1.0, removes this note and does the first build), then rewrite this README, `AGENTS.md` ("What this is", "Open items"), `docs/site/index.html` and the metainfo description for the real app.
 
 Page: <https://OWNER.github.io/MyApp/>
 
@@ -17,14 +17,14 @@ Page: <https://OWNER.github.io/MyApp/>
 
 - The "Hello" example app:
     - Type your name and the greeting updates as you type.
-    - A sidebar switches between Hello and Widgets. Its burger button opens the settings dialog (Appearance and Language). Its About button opens a dialog with the icon, version, description and website link.
+    - A sidebar switches between Hello and Widgets. Its burger button opens the preferences dialog (Appearance and Language). Its About button opens a dialog with the icon, version, description and website link.
     - The Widgets page has four tabs:
         - Inputs: checkbox, slider, spin box, switch, radio buttons, password field and text area, some of them linked to each other.
         - List: an add/remove list.
         - Table: a sortable table with a search box and a Filters button (file type, larger than 1 MB). Typing anywhere on this tab goes into the search box, no need to click it first. Esc empties the search box.
         - Feedback: a progress bar and spinner for a running task.
-    - The settings dialog has an Appearance choice (System, Light or Dark) and a Language choice (System, English or Português), both remembered.
-    - You are meant to replace the examples with your own app and keep the settings and About dialogs.
+    - The preferences dialog has an Appearance choice (System, Light or Dark) and a Language choice (System, English or Português), both remembered.
+    - You are meant to replace the examples with your own app and keep the preferences and About dialogs.
 - (Edit: what the app does.): a placeholder for you to describe the real app after you rename the template.
 
 ## Install

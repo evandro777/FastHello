@@ -1,7 +1,9 @@
 import {
     Button, CheckBox, ComboBox, GroupBox, LineEdit, Palette, ProgressIndicator, RadioGroup, ScrollView, Slider,
-    SpinBox, Spinner, StandardListView, StandardTableView, Switch, TabWidget, TextEdit,
+    SpinBox, Spinner, StandardListView, StandardTableView, Switch, TextEdit,
 } from "std-widgets.slint";
+import { AlertIcon, FilterBar, Icon, NeutralBadge, SearchBox, TabBar, TabItem } from "controls.slint";
+import { Family } from "family.slint";
 
 // Every tab is a ScrollView over a `VerticalLayout { alignment: start }`: a short page keeps its natural row
 // heights instead of spreading, and a tall one scrolls when the window is small.
@@ -12,6 +14,8 @@ component InputsTab inherits ScrollView {
     // One int shared by SpinBox (int) and Slider (float); `<=>` between them would not compile.
     property <int> level: 50;
     property <int> size-index: 1;
+    property <int> view-index: 0;
+    property <int> page: 1;
 
     // Dragging the slider overwrites its `value` binding, so push later changes (SpinBox) back by hand.
     changed level => { slider.value = root.level; }
@@ -82,6 +86,52 @@ component InputsTab inherits ScrollView {
                 }
             }
         }
+        // The family's own controls (controls.slint), next to the Fluent ones above.
+        GroupBox {
+            title: @tr("Family controls");
+            VerticalLayout {
+                spacing: 8px;
+                SearchBox { placeholder: @tr("Search"); enabled: root.controls-enabled; }
+                HorizontalLayout {
+                    FilterBar {
+                        labels: [@tr("All"), @tr("Open"), @tr("Done")];
+                        icons: [@image-url("icons/info.svg"), @image-url("icons/power.svg"), @image-url("icons/circle-check.svg")];
+                        tones: [Family.muted, Family.muted, Family.success];
+                        selected <=> root.view-index;
+                    }
+                    Rectangle { }
+                }
+                // Buttons with an icon: the sample buttons do nothing.
+                HorizontalLayout {
+                    spacing: 8px;
+                    Button { text: @tr("Refresh"); icon: @image-url("icons/refresh.svg"); colorize-icon: true; enabled: root.controls-enabled; }
+                    Button { text: @tr("Open folder"); icon: @image-url("icons/folder.svg"); colorize-icon: true; enabled: root.controls-enabled; }
+                    Button { text: @tr("Copy"); icon: @image-url("icons/copy.svg"); colorize-icon: true; enabled: root.controls-enabled; }
+                    Rectangle { }
+                    NeutralBadge { text: "Flatpak"; }
+                }
+                // Icon-only buttons need an accessible label: there is no text to read.
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    Button {
+                        icon: @image-url("icons/chevron-left.svg");
+                        colorize-icon: true;
+                        accessible-label: @tr("Previous page");
+                        enabled: root.controls-enabled && root.page > 1;
+                        clicked => { root.page -= 1; }
+                    }
+                    Text { text: @tr("Page {} of 3", root.page); vertical-alignment: center; }
+                    Button {
+                        icon: @image-url("icons/chevron-right.svg");
+                        colorize-icon: true;
+                        accessible-label: @tr("Next page");
+                        enabled: root.controls-enabled && root.page < 3;
+                        clicked => { root.page += 1; }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -137,6 +187,8 @@ component ListTab inherits ScrollView {
                     }
                     Button {
                         text: @tr("Remove");
+                        icon: @image-url("icons/trash.svg");
+                        colorize-icon: true;
                         enabled: root.selected >= 0 && root.selected < root.items.length;
                         clicked => {
                             root.remove-item(root.selected);
@@ -159,7 +211,7 @@ component TableTab inherits ScrollView {
     in-out property <bool> filters-open;
     // Counts up when Main wants the search box focused (a key was typed while it was not).
     in property <int> focus-search;
-    property <bool> search-focused: input.has-focus;
+    property <bool> search-focused: input.editing;
     // Main needs to know, or it would swallow keys meant for the focused search box.
     callback search-focus-changed(bool);
     changed search-focused => { root.search-focus-changed(root.search-focused); }
@@ -192,9 +244,10 @@ component TableTab inherits ScrollView {
                     spacing: 0px;
                     HorizontalLayout {
                         spacing: 8px;
-                        input := LineEdit {
-                            placeholder-text: @tr("Search files");
+                        input := SearchBox {
+                            placeholder: @tr("Search files");
                             text <=> root.query;
+                            horizontal-stretch: 1;
                         }
                         Button {
                             text: root.active-filters > 0 ? @tr("Filters ({})", root.active-filters) : @tr("Filters");
@@ -312,23 +365,59 @@ component FeedbackTab inherits ScrollView {
                     if root.running: Spinner { indeterminate: true; }
                 }
                 ProgressIndicator { progress: root.progress; }
-                Text {
-                    text: root.running ? @tr("Running…") : root.finished ? @tr("Done") : @tr("Press Start task to try it.");
-                    color: Palette.foreground.with-alpha(0.7);
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    if !root.running : VerticalLayout {
+                        alignment: center;
+                        Icon {
+                            source: root.finished ? @image-url("icons/circle-check.svg") : @image-url("icons/info.svg");
+                            tone: root.finished ? Family.success : Family.muted;
+                            width: 16px;
+                            height: 16px;
+                        }
+                    }
+                    Text {
+                        text: root.running ? @tr("Running…") : root.finished ? @tr("Done") : @tr("Press Start task to try it.");
+                        color: Palette.foreground.with-alpha(0.7);
+                        vertical-alignment: center;
+                    }
                 }
             }
         }
         GroupBox {
             title: @tr("Static examples");
-            HorizontalLayout {
-                spacing: 12px;
-                // The bar would stretch to the spinner's height without this.
-                VerticalLayout {
-                    alignment: center;
-                    horizontal-stretch: 1;
-                    ProgressIndicator { progress: 0.6; }
+            VerticalLayout {
+                spacing: 8px;
+                HorizontalLayout {
+                    spacing: 12px;
+                    // The bar would stretch to the spinner's height without this.
+                    VerticalLayout {
+                        alignment: center;
+                        horizontal-stretch: 1;
+                        ProgressIndicator { progress: 0.6; }
+                    }
+                    Spinner { progress: 0.6; }
                 }
-                Spinner { progress: 0.6; }
+                // Status: an icon and a word, never colour alone.
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    VerticalLayout { alignment: center; Icon { source: @image-url("icons/circle-check.svg"); tone: Family.success; width: 16px; height: 16px; } }
+                    Text { text: @tr("Backup finished"); vertical-alignment: center; }
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    VerticalLayout { alignment: center; AlertIcon { } }
+                    Text { text: @tr("Disk almost full"); vertical-alignment: center; }
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    VerticalLayout { alignment: center; Icon { source: @image-url("icons/info.svg"); tone: Family.info; width: 16px; height: 16px; } }
+                    Text { text: @tr("Update available"); vertical-alignment: center; }
+                }
             }
         }
     }
@@ -350,23 +439,31 @@ export component WidgetsPage inherits Rectangle {
     callback sort-files(int, bool);
     callback filter-changed(string, string, bool);
 
-    TabWidget {
-        current-index <=> root.tab;
-        Tab {
-            title: @tr("Inputs");
-            InputsTab { }
+    VerticalLayout {
+        // The family tab bar (the same as FastProcMan and FastApiClient), not Fluent's `TabWidget`. All pages stay
+        // alive and are only hidden, so a page keeps its scroll position and the table its search focus.
+        TabBar {
+            for title[i] in [@tr("Inputs"), @tr("List"), @tr("Table"), @tr("Feedback")]: TabItem {
+                title: title;
+                active: root.tab == i;
+                clicked => { root.tab = i; }
+            }
         }
-        Tab {
-            title: @tr("List");
+        Rectangle {
+            vertical-stretch: 1;
+            InputsTab { width: parent.width; height: parent.height; visible: root.tab == 0; }
             ListTab {
+                width: parent.width;
+                height: parent.height;
+                visible: root.tab == 1;
                 items: root.items;
                 add-item(t) => { root.add-item(t); }
                 remove-item(i) => { root.remove-item(i); }
             }
-        }
-        Tab {
-            title: @tr("Table");
             TableTab {
+                width: parent.width;
+                height: parent.height;
+                visible: root.tab == 2;
                 files: root.files;
                 search-focus-changed(f) => { root.search-focus-changed(f); }
                 files-total: root.files-total;
@@ -376,10 +473,7 @@ export component WidgetsPage inherits Rectangle {
                 sort-files(c, asc) => { root.sort-files(c, asc); }
                 filter-changed(q, k, big) => { root.filter-changed(q, k, big); }
             }
-        }
-        Tab {
-            title: @tr("Feedback");
-            FeedbackTab { }
+            FeedbackTab { width: parent.width; height: parent.height; visible: root.tab == 3; }
         }
     }
 }

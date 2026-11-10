@@ -82,7 +82,7 @@ Gradients and opacity are not just ignored, they come out wrong, so the PNG woul
 
 ## Make the icon for a new app
 
-1. After `./rename.sh`, open `packaging/io.github.<owner>.<App>.svg`. It is the template icon: the slate tile with a speech bubble.
+1. After `./prepare.sh`, open `packaging/io.github.<owner>.<App>.svg`. It is the template icon: the slate tile with a speech bubble.
 2. Change the tile `fill` to your color, and replace the contents of the `<g>` group with your symbol. Keep the group's `transform`, `stroke-width` and caps as they are.
 3. Make the PNG (it is the AppImage icon, 256 px). From the repository root:
 

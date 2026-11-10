@@ -7,10 +7,6 @@ msgctxt "Tr"
 msgid "Hello, {}"
 msgstr "Olá, {}"
 
-msgctxt "Tr"
-msgid "Version {}"
-msgstr "Versão {}"
-
 msgctxt "Main"
 msgid "world"
 msgstr "mundo"
@@ -28,8 +24,12 @@ msgid "Widgets"
 msgstr "Widgets"
 
 msgctxt "SettingsDialog"
-msgid "Settings"
-msgstr "Configurações"
+msgid "Preferences"
+msgstr "Preferências"
+
+msgctxt "Main"
+msgid "Preferences"
+msgstr "Preferências"
 
 msgctxt "SettingsDialog"
 msgid "Appearance"
@@ -46,10 +46,6 @@ msgstr "Claro"
 msgctxt "SettingsDialog"
 msgid "Dark"
 msgstr "Escuro"
-
-msgctxt "SettingsDialog"
-msgid "System follows your desktop's light or dark mode."
-msgstr "Sistema segue o modo claro ou escuro da sua área de trabalho."
 
 msgctxt "SettingsDialog"
 msgid "Language"
@@ -90,6 +86,50 @@ msgstr "Notificações"
 msgctxt "InputsTab"
 msgid "Choice"
 msgstr "Escolha"
+
+msgctxt "InputsTab"
+msgid "Family controls"
+msgstr "Controles da família"
+
+msgctxt "InputsTab"
+msgid "Search"
+msgstr "Pesquisar"
+
+msgctxt "InputsTab"
+msgid "All"
+msgstr "Todos"
+
+msgctxt "InputsTab"
+msgid "Open"
+msgstr "Abertos"
+
+msgctxt "InputsTab"
+msgid "Done"
+msgstr "Concluídos"
+
+msgctxt "InputsTab"
+msgid "Refresh"
+msgstr "Atualizar"
+
+msgctxt "InputsTab"
+msgid "Open folder"
+msgstr "Abrir pasta"
+
+msgctxt "InputsTab"
+msgid "Copy"
+msgstr "Copiar"
+
+msgctxt "InputsTab"
+msgid "Previous page"
+msgstr "Página anterior"
+
+msgctxt "InputsTab"
+msgid "Next page"
+msgstr "Próxima página"
+
+msgctxt "InputsTab"
+msgid "Page {} of 3"
+msgstr "Página {} de 3"
 
 msgctxt "InputsTab"
 msgid "Small"
@@ -231,6 +271,18 @@ msgctxt "FeedbackTab"
 msgid "Static examples"
 msgstr "Exemplos estáticos"
 
+msgctxt "FeedbackTab"
+msgid "Backup finished"
+msgstr "Backup concluído"
+
+msgctxt "FeedbackTab"
+msgid "Disk almost full"
+msgstr "Disco quase cheio"
+
+msgctxt "FeedbackTab"
+msgid "Update available"
+msgstr "Atualização disponível"
+
 msgctxt "SettingsDialog"
 msgid "Close"
 msgstr "Fechar"
@@ -239,10 +291,18 @@ msgctxt "About"
 msgid "A light and fast Linux app built with Rust and Slint."
 msgstr "Um app Linux leve e rápido feito com Rust e Slint."
 
-msgctxt "About"
-msgid "Website"
-msgstr "Site"
+msgctxt "AboutCard"
+msgid "Version {}"
+msgstr "Versão {}"
 
-msgctxt "About"
+msgctxt "AboutCard"
+msgid "Author: {}"
+msgstr "Autor: {}"
+
+msgctxt "AboutCard"
+msgid "License: {}"
+msgstr "Licença: {}"
+
+msgctxt "AboutCard"
 msgid "Close"
 msgstr "Fechar"

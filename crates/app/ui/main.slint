@@ -1,18 +1,20 @@
 import { Button, ComboBox, GroupBox, LineEdit, Palette, ScrollView, StandardListView } from "std-widgets.slint";
 import { WidgetsPage } from "widgets.slint";
+import { Family } from "family.slint";
+import { AboutCard, PrefRow } from "about.slint";
+import { MenuButton } from "controls.slint";
 
 // Strings built in Rust go through this global (never `format!` user-visible text in Rust).
 export global Tr {
     public pure function greeting(name: string) -> string { return @tr("Hello, {}", name); }
-    public pure function version(v: string) -> string { return @tr("Version {}", v); }
 }
 
 // The shell of every dialog: an in-window overlay, not a second window (closing Main always ends the app, and
 // ui-snapshot.sh can capture it). The dialog's content goes inside the card.
 component Dialog inherits Rectangle {
-    in property <length> card-width: 360px;
+    in property <length> card-width: Family.dialog-width;
     callback dismiss();
-    background: #0008;
+    background: Family.scrim;
     init => { keys.focus(); }
 
     // Swallows clicks so nothing behind the overlay is reachable; a click outside the card closes it.
@@ -37,9 +39,9 @@ component Dialog inherits Rectangle {
         x: (parent.width - self.width) / 2;
         y: (parent.height - self.height) / 2;
         background: Palette.background;
-        border-radius: 8px;
-        drop-shadow-blur: 16px;
-        drop-shadow-color: #0006;
+        border-radius: Family.radius;
+        border-width: 1px;
+        border-color: Palette.border;
         TouchArea { }
         box := VerticalLayout {
             padding: 16px;
@@ -56,33 +58,26 @@ component SettingsDialog inherits Dialog {
     in-out property <int> language-index;
     callback show-about();
 
-    Text { text: @tr("Settings"); font-size: 20px; font-weight: 700; }
+    Text { text: @tr("Preferences"); font-size: Family.page-title; font-weight: Family.page-weight; }
     ScrollView {
         // A ScrollView does not report its content's height, so the card would collapse to a sliver.
         preferred-height: content.preferred-height;
         content := VerticalLayout {
             alignment: start;
             spacing: 12px;
-            // Label and selector side by side (the labels share one width).
-            HorizontalLayout {
-                spacing: 12px;
-                Text { text: @tr("Appearance"); width: 100px; vertical-alignment: center; }
+            PrefRow {
+                label: @tr("Appearance");
                 ComboBox {
+                    width: Family.control-width;
                     model: [@tr("System"), @tr("Light"), @tr("Dark")];
                     current-index <=> root.color-scheme-index;
                 }
             }
-            Text {
-                text: @tr("System follows your desktop's light or dark mode.");
-                color: Palette.foreground.with-alpha(0.7);
-                wrap: word-wrap;
-                min-width: 0px;
-            }
-            HorizontalLayout {
-                spacing: 12px;
-                Text { text: @tr("Language"); width: 100px; vertical-alignment: center; }
+            PrefRow {
+                label: @tr("Language");
                 // Language names stay in their own language, so they are not translated.
                 ComboBox {
+                    width: Family.control-width;
                     model: [@tr("System"), "English", "Português (Brasil)"];
                     current-index <=> root.language-index;
                 }
@@ -101,28 +96,15 @@ component SettingsDialog inherits Dialog {
 component About inherits Dialog {
     in property <string> version;
     callback open-website();
-    card-width: 340px;
 
-    HorizontalLayout {
-        alignment: center;
-        Image {
-            source: @image-url("../../../packaging/io.github.OWNER.MyApp.svg");
-            width: 64px;
-            height: 64px;
-        }
-    }
-    Text { text: "MyApp"; font-size: 20px; font-weight: 700; horizontal-alignment: center; }
-    Text { text: Tr.version(root.version); horizontal-alignment: center; }
-    Text {
-        text: @tr("A light and fast Linux app built with Rust and Slint.");
-        wrap: word-wrap;
-        horizontal-alignment: center;
-    }
-    HorizontalLayout {
-        alignment: end;
-        spacing: 8px;
-        Button { text: @tr("Website"); clicked => { root.open-website(); } }
-        Button { text: @tr("Close"); primary: true; clicked => { root.dismiss(); } }
+    AboutCard {
+        icon: @image-url("../../../packaging/io.github.OWNER.MyApp.svg");
+        name: "MyApp";
+        version: root.version;
+        description: @tr("A light and fast Linux app built with Rust and Slint.");
+        url: "github.com/OWNER/MyApp";
+        link-clicked(_) => { root.open-website(); }
+        close => { root.dismiss(); }
     }
 }
 
@@ -218,12 +200,11 @@ export component Main inherits Window {
                             width: 24px;
                             height: 24px;
                         }
-                        Text { text: "MyApp"; font-weight: 600; vertical-alignment: center; }
+                        Text { text: "MyApp"; font-weight: Family.section-weight; vertical-alignment: center; }
                         Rectangle { horizontal-stretch: 1; }
-                        // The burger: opens the settings dialog (Appearance, Language, About).
-                        Button {
-                            icon: @image-url("icons/menu.svg");
-                            colorize-icon: true;
+                        // The burger: opens the preferences dialog (Appearance, Language, About).
+                        MenuButton {
+                            label: @tr("Preferences");
                             clicked => { root.settings-open = true; }
                         }
                     }

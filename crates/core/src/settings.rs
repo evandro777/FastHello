@@ -1,12 +1,11 @@
 //! User settings in one TOML file under the XDG data dir (`~/.local/share/MyApp`).
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-/// Folder name under the XDG data dir; `rename.sh` rewrites it.
+use crate::files::{read_or_backup, write_atomic};
+
+/// Folder name under the XDG data dir; `prepare.sh` rewrites it.
 pub const APP_DIR: &str = "MyApp";
 pub const MIN_SIZE: (u32, u32) = (400, 300);
 /// Upper bound for a hand-edited size; a huge value would fail at window creation.
@@ -53,20 +52,8 @@ impl Settings {
     }
 
     fn load_from(dir: &Path) -> Self {
-        let path = dir.join("settings.toml");
-        let mut s = match fs::read_to_string(&path) {
-            Ok(text) => parse(&text).unwrap_or_else(|e| {
-                // The file is hand-edited; the next save() must not overwrite what the user wrote.
-                let bad = path.with_extension("toml.bad");
-                eprintln!(
-                    "settings.toml is invalid ({e}); kept as {}, using defaults",
-                    bad.display()
-                );
-                let _ = fs::rename(&path, bad);
-                Settings::default()
-            }),
-            Err(_) => Settings::default(),
-        };
+        // The file is hand-edited; a bad one is moved aside so the next save() must not overwrite what the user wrote.
+        let mut s = read_or_backup(&dir.join("settings.toml"), |t| parse(t).map_err(|e| e.to_string())).0;
         s.normalize();
         s
     }
@@ -89,17 +76,15 @@ impl Settings {
     }
 
     fn save_to(&self, dir: &Path) -> std::io::Result<()> {
-        fs::create_dir_all(dir)?;
         let text = toml::to_string_pretty(self).map_err(std::io::Error::other)?;
-        // The pid keeps two running copies from writing the same temp file.
-        let tmp = dir.join(format!("settings.toml.{}.tmp", std::process::id()));
-        fs::write(&tmp, text)?;
-        fs::rename(&tmp, dir.join("settings.toml"))
+        write_atomic(&dir.join("settings.toml"), text)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use super::*;
 
     #[test]
@@ -148,7 +133,12 @@ mod tests {
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join("settings.toml"), "width = \"wide\"").unwrap();
         assert_eq!(Settings::load_from(&dir).width, Settings::default().width);
-        assert!(dir.join("settings.toml.bad").exists());
+        assert!(
+            fs::read_dir(&dir)
+                .unwrap()
+                .flatten()
+                .any(|e| e.file_name().to_string_lossy().starts_with("settings.toml.bad."))
+        );
         assert!(!dir.join("settings.toml").exists());
         let _ = fs::remove_dir_all(&dir);
     }
