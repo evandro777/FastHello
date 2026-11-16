@@ -1,4 +1,4 @@
-app-id: io.github.OWNER.MyApp
+app-id: io.github.evandro777.FastHello
 runtime: org.freedesktop.Platform
 # Bump together with: the container image tag and the rust-stable lines in .github/workflows/flatpak.yml, and the
 # header of flatpak/build.sh.
@@ -6,7 +6,7 @@ runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
-command: myapp
+command: fasthello
 
 # Wayland when available, otherwise X11. Keep this list as small as the app allows: no filesystem, network or GPU
 # access (software rendering). An app that needs a global hotkey, clipboard watching or synthetic keys is X11-only:
@@ -17,21 +17,21 @@ finish-args:
   - --socket=fallback-x11
 
 modules:
-  - name: myapp
+  - name: fasthello
     buildsystem: simple
     build-options:
       append-path: /usr/lib/sdk/rust-stable/bin
       env:
-        CARGO_HOME: /run/build/myapp/cargo
+        CARGO_HOME: /run/build/fasthello/cargo
     build-commands:
       - cargo build --release --offline --locked
-      - install -Dm755 target/release/myapp ${FLATPAK_DEST}/bin/myapp
-      - install -Dm644 packaging/io.github.OWNER.MyApp.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
-      - install -Dm644 packaging/io.github.OWNER.MyApp.metainfo.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
-      - install -Dm644 packaging/io.github.OWNER.MyApp.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
-      # A development build (app-id ...MyApp.Devel) must not collide with an installed release.
-      - sed -i "s/io\\.github\\.OWNER\\.MyApp/${FLATPAK_ID}/g" ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
-      - case "${FLATPAK_ID}" in *.Devel) sed -i "s/^Name=MyApp$/Name=MyApp (Devel)/" ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop ;; esac
+      - install -Dm755 target/release/fasthello ${FLATPAK_DEST}/bin/fasthello
+      - install -Dm644 packaging/io.github.evandro777.FastHello.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
+      - install -Dm644 packaging/io.github.evandro777.FastHello.metainfo.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
+      - install -Dm644 packaging/io.github.evandro777.FastHello.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
+      # A development build (app-id ...FastHello.Devel) must not collide with an installed release.
+      - sed -i "s/io\\.github\\.evandro777\\.FastHello/${FLATPAK_ID}/g" ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
+      - case "${FLATPAK_ID}" in *.Devel) sed -i "s/^Name=FastHello$/Name=FastHello (Devel)/" ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop ;; esac
     sources:
       - type: dir
         path: ..
@@ -44,8 +44,8 @@ modules:
           - flatpak/.flatpak-builder
           - flatpak/repo
           - flatpak/vendor
-          - flatpak/io.github.OWNER.MyApp.Devel.yml
-          - flatpak/myapp.flatpak
+          - flatpak/io.github.evandro777.FastHello.Devel.yml
+          - flatpak/fasthello.flatpak
           - appimage/AppDir
           - squashfs-root
       # Crates are vendored by flatpak/build.sh, because the build runs without network access.

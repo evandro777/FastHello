@@ -43,8 +43,8 @@ jobs:
 
       - name: Validate packaging metadata
         run: |
-          appstreamcli validate --no-net packaging/io.github.OWNER.MyApp.metainfo.xml
-          desktop-file-validate packaging/io.github.OWNER.MyApp.desktop
+          appstreamcli validate --no-net packaging/io.github.evandro777.FastHello.metainfo.xml
+          desktop-file-validate packaging/io.github.evandro777.FastHello.desktop
 
   msrv:
     name: Minimum Rust version
@@ -86,6 +86,7 @@ jobs:
           cd "$RUNNER_TEMP/copy"
           ./prepare.sh testapp TestApp someone
           test ! -e prepare.sh
+          if grep -q 'prepare' .github/workflows/ci.yml; then echo 'ci.yml still has the template prepare job'; exit 1; fi
           if grep -q "Template note" README.md AGENTS.md; then exit 1; fi
           grep -q '^version = "0.1.0"' Cargo.toml
           cargo check --locked

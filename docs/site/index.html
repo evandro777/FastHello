@@ -3,84 +3,206 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MyApp</title>
+<title>FastHello</title>
 <!-- EDIT: description, og:title and og:description (also the visible text below). -->
-<meta name="description" content="A light and fast Linux app, written in Rust.">
-<meta property="og:title" content="MyApp">
-<meta property="og:description" content="A light and fast Linux app, written in Rust.">
-<meta property="og:image" content="https://OWNER.github.io/MyApp/screenshots/main.png">
+<meta name="description" content="The starter kit and widget sandbox for light, fast Linux apps written in Rust and Slint.">
+<meta property="og:title" content="FastHello">
+<meta property="og:description" content="The starter kit and widget sandbox for light, fast Linux apps written in Rust and Slint.">
+<meta property="og:image" content="https://evandro777.github.io/FastHello/screenshots/widgets-table-light.png">
+<script>document.documentElement.className = "js";</script>
 <style>
-  :root { --bg:#fff; --fg:#1d1d20; --muted:#5f6368; --card:#f4f5f7; --accent:#0b7d3c; --border:#dadce0; --warn:#fff4d6; --warn-fg:#5c4400; }
+  :root { --paper:#fbfbfa; --ink:#1f2124; --quiet:#62666c; --line:#e1e2e4; --code:#f1f2f3; --tile:#4b5568; --on-tile:#fff; --focus:#0b6fd6; }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#17181a; --fg:#ececee; --muted:#9aa0a6; --card:#222427; --accent:#4cc38a; --border:#34373b; --warn:#33290d; --warn-fg:#f0d98a; }
+    :root { --paper:#1b1c1e; --ink:#e8e9eb; --quiet:#a0a4aa; --line:#34363a; --code:#232528; --tile:#aeb8cc; --on-tile:#15171a; --focus:#6cb2ff; }
   }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui, sans-serif; }
-  main { max-width: 860px; margin: 0 auto; padding: 0 16px 64px; }
-  header { padding: 56px 0 16px; text-align: center; }
-  h1 { font-size: 2.6rem; margin: 0; }
-  .tag { color: var(--muted); font-size: 1.15rem; margin: 8px 0 0; }
-  h2 { margin-top: 48px; }
-  a { color: var(--accent); }
-  kbd { background:var(--card); border:1px solid var(--border); border-bottom-width:2px; border-radius:6px; padding:1px 7px; font:.9em ui-monospace, monospace; }
-  .callout { background:var(--warn); color:var(--warn-fg); border-radius:10px; padding:10px 16px; margin:20px 0 0; text-align:center; }
-  .shots { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:28px; align-items:start; }
-  .shots img { width:100%; height:auto; border-radius:10px; border:1px solid var(--border); }
-  /* One screenshot: centered at its own size instead of half of an empty grid. */
-  .shots img:only-child { grid-column:1 / -1; max-width:600px; justify-self:center; }
-  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
-  .card { background:var(--card); border-radius:10px; padding:14px 16px; }
-  .card b { display:block; color:var(--accent); }
-  .card span { color:var(--muted); font-size:.92rem; }
-  pre { background:var(--card); padding:14px; border-radius:10px; overflow-x:auto; font-size:.9rem; }
-  details { background:var(--card); border-radius:10px; padding:10px 16px; margin:12px 0; }
-  summary { cursor:pointer; font-weight:600; }
-  small, .note { color:var(--muted); }
-  @media (max-width: 640px) { .shots { grid-template-columns: 1fr; } h1 { font-size: 2.1rem; } }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 0 16px 64px; }
+  p, dd, li { max-width: 68ch; }
+  a { color: inherit; text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  h1 { font-size: 2.75rem; line-height: 1.1; margin: 0; letter-spacing: -.01em; }
+  h2 { font-size: 1.75rem; line-height: 1.2; margin: 64px 0 12px; }
+  code, pre { font: .9em ui-monospace, monospace; }
+  pre { background:var(--code); padding:14px 16px; border-radius:8px; overflow-x:auto; }
+  small, .quiet { color:var(--quiet); }
+
+  .top { display:flex; align-items:center; gap:10px; padding:20px 0; }
+  .top img { width:32px; height:32px; }
+  .top b { font-size:1.1rem; }
+  .top nav { margin-left:auto; display:flex; gap:20px; }
+  .top nav a { color:var(--quiet); text-decoration:none; }
+  .top nav a:hover { color:var(--ink); text-decoration:underline; }
+
+  .pitch { font-size:1.25rem; color:var(--quiet); margin:16px 0 24px; }
+  .go { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:40px; }
+  .go a { padding:6px 16px; border-radius:6px; text-decoration:none; border:1px solid var(--line); }
+  .go a:first-child { background:var(--tile); border-color:var(--tile); color:var(--on-tile); font-weight:600; }
+  .go a:hover { text-decoration:underline; }
+
+  /* The kit's own TabBar, drawn in HTML: flat, left-aligned, a hairline under it and an underline on the active tab. */
+  .tabs { display:flex; flex-wrap:wrap; border-bottom:1px solid var(--line); }
+  .tabs button { all:unset; cursor:pointer; padding:5px 14px; height:32px; color:var(--quiet); border-bottom:2px solid transparent; margin-bottom:-1px; display:flex; gap:6px; align-items:center; }
+  .tabs button:hover { color:var(--ink); }
+  .tabs button[aria-selected="true"] { color:var(--ink); font-weight:600; border-bottom-color:var(--tile); }
+  .tabs button:focus-visible { outline:2px solid var(--focus); outline-offset:-2px; }
+  .tabs .count { font-size:.75rem; min-width:18px; height:18px; border-radius:9px; background:var(--code); text-align:center; line-height:18px; }
+  .frame { border:1px solid var(--line); border-top:0; border-radius:0 0 8px 8px; overflow:hidden; background:var(--code); }
+  .frame img { display:block; width:100%; height:auto; }
+  .panel + .panel { margin-top:16px; }
+  .js .panel[hidden] { display:none; }
+  .js .panel { animation: swap .12s ease-out; }
+  @keyframes swap { from { opacity:0; } }
+  .caption { margin:12px 0 0; color:var(--quiet); }
+
+  dl { display:grid; grid-template-columns: minmax(10rem, 14rem) 1fr; gap:10px 24px; margin:0; }
+  dt { font-weight:600; }
+  dd { margin:0; color:var(--quiet); }
+  ol { padding-left:1.4rem; }
+  li { margin:6px 0; }
+  .family { columns: 2 280px; list-style:none; padding:0; }
+  .family li { break-inside:avoid; }
+  .family a { font-weight:600; }
+
+  @media (max-width: 640px) {
+    h1 { font-size:2.1rem; }
+    dl { grid-template-columns: 1fr; gap:2px; }
+    dd { margin-bottom:12px; }
+    .top nav { gap:14px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .js .panel { animation:none; } }
 </style>
 </head>
 <body>
 <main>
+  <div class="top">
+    <img src="icon.svg" alt="" width="32" height="32">
+    <b>FastHello</b>
+    <nav>
+      <a href="https://github.com/evandro777/FastHello">GitHub</a>
+      <a href="https://github.com/evandro777/FastHello/releases">Releases</a>
+    </nav>
+  </div>
+
   <header>
-    <h1>MyApp</h1>
     <!-- EDIT: the one-line pitch, and the shortcut if the app has one (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd>). -->
-    <p class="tag">A Linux app that is light and fast.</p>
-    <p><a href="https://github.com/OWNER/MyApp">GitHub</a> ·
-       <a href="https://github.com/OWNER/MyApp/releases">Releases</a></p>
-    <!-- EDIT or delete: the platform caveat, for example "X11 only for now". -->
-    <p class="callout"><b>Early version.</b> Tested on Linux Mint Cinnamon.</p>
+    <h1>The starter kit for light, fast Linux apps</h1>
+    <p class="pitch">FastHello is a small working app and a sandbox for the controls every Fast app shares. Rust and Slint, software rendering, no async runtime.</p>
+    <div class="go">
+      <a href="#install">Install</a>
+      <!-- template:start -->
+      <a href="#start">Start your own app</a>
+      <!-- template:end -->
+    </div>
   </header>
 
-  <!-- EDIT: replace docs/screenshots/main.png with a real screenshot (and add more); keep width/height right. -->
-  <div class="shots">
-    <img src="screenshots/main.png" width="600" height="450" alt="The MyApp window">
-  </div>
+  <!-- EDIT: replace the screenshots in docs/screenshots (scripts/docs-screenshots.sh) and the tabs to match your app. -->
+  <section aria-label="The app">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="t-main" aria-controls="p-main" aria-selected="true">Hello</button>
+      <button role="tab" id="t-widgets" aria-controls="p-widgets" aria-selected="false" tabindex="-1">Inputs</button>
+      <button role="tab" id="t-table" aria-controls="p-table" aria-selected="false" tabindex="-1">Table <span class="count">12</span></button>
+      <button role="tab" id="t-buttons" aria-controls="p-buttons" aria-selected="false" tabindex="-1">Buttons</button>
+      <button role="tab" id="t-settings" aria-controls="p-settings" aria-selected="false" tabindex="-1">Preferences</button>
+    </div>
+    <div class="frame">
+      <div class="panel" id="p-main" role="tabpanel" aria-labelledby="t-main">
+        <picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/main-dark.png"><img src="screenshots/main-light.png" width="860" height="600" alt="The Hello page: a greeting that follows the name typed above it"></picture>
+      </div>
+      <div class="panel" id="p-widgets" role="tabpanel" aria-labelledby="t-widgets" hidden>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/widgets-dark.png"><img src="screenshots/widgets-light.png" width="860" height="600" loading="lazy" alt="The Inputs tab: checkbox, slider, spin box, switch and radio buttons"></picture>
+      </div>
+      <div class="panel" id="p-table" role="tabpanel" aria-labelledby="t-table" hidden>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/widgets-table-dark.png"><img src="screenshots/widgets-table-light.png" width="860" height="600" loading="lazy" alt="The Table tab: a search box, a filter panel and a sortable list of files"></picture>
+      </div>
+      <div class="panel" id="p-buttons" role="tabpanel" aria-labelledby="t-buttons" hidden>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/widgets-buttons-dark.png"><img src="screenshots/widgets-buttons-light.png" width="860" height="600" loading="lazy" alt="The Buttons tab: text buttons, a delete that asks first, icon buttons and a stepper"></picture>
+      </div>
+      <div class="panel" id="p-settings" role="tabpanel" aria-labelledby="t-settings" hidden>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/settings-dark.png"><img src="screenshots/settings-light.png" width="860" height="600" loading="lazy" alt="Preferences: appearance and language"></picture>
+      </div>
+    </div>
+    <p class="caption" id="caption">A greeting that follows the name you type.</p>
+  </section>
 
-  <h2>What it does</h2>
-  <!-- EDIT: a short paragraph, then one card per feature. -->
-  <p>Written in Rust with Slint, software rendering only, no async runtime.</p>
-  <div class="grid">
-    <div class="card"><b>Light</b><span>Small binary and little memory.</span></div>
-    <div class="card"><b>Fast</b><span>Starts quickly.</span></div>
-  </div>
+  <h2>What the kit gives an app</h2>
+  <dl>
+    <dt>One window</dt><dd>Starting it again raises the running window instead of opening a second one.</dd>
+    <dt>Safe settings</dt><dd>Private files, written atomically. A damaged file is kept as a backup, never overwritten.</dd>
+    <dt>Shared controls</dt><dd>Tabs, search box, filter bar, buttons and dialogs that look the same in every Fast app.</dd>
+    <dt>System look</dt><dd>Follows the system accent and light or dark mode. English and Portuguese included.</dd>
+    <dt>Ready to ship</dt><dd>Flatpak with its own signed update remote, an AppImage with delta updates, and CI.</dd>
+  </dl>
 
-  <h2>Install with Flatpak (updates itself)</h2>
-  <p>This remote keeps MyApp updated with <code>flatpak update</code> and your software centre:</p>
-<pre>flatpak remote-add --system --if-not-exists myapp https://OWNER.github.io/MyApp/myapp.flatpakrepo
-flatpak install --system myapp io.github.OWNER.MyApp</pre>
+  <h2 id="install">Install with Flatpak (updates itself)</h2>
+  <p>This remote keeps FastHello updated with <code>flatpak update</code> and your software centre:</p>
+<pre>flatpak remote-add --system --if-not-exists fasthello https://evandro777.github.io/FastHello/fasthello.flatpakrepo
+flatpak install --system fasthello io.github.evandro777.FastHello</pre>
   <p><small>Use <code>--system</code>: Linux Mint's Update Manager only looks at system-wide Flatpaks. The runtime comes from
      Flathub. The remote is GPG-signed, but the key lives in the
-     <a href="https://github.com/OWNER/MyApp">source repository</a>, so it is only as trustworthy as that.</small></p>
+     <a href="https://github.com/evandro777/FastHello">source repository</a>, so it is only as trustworthy as that.</small></p>
 
   <h2>Or the AppImage</h2>
-  <p>Download <code>MyApp-&lt;version&gt;-x86_64.AppImage</code> from the
-     <a href="https://github.com/OWNER/MyApp/releases/latest">latest release</a>, <code>chmod +x</code> it and run it.
+  <p>Download <code>FastHello-&lt;version&gt;-x86_64.AppImage</code> from the
+     <a href="https://github.com/evandro777/FastHello/releases/latest">latest release</a>, <code>chmod +x</code> it and run it.
      It uses the fontconfig, xkbcommon and X11 libraries already on your system, and carries update information, so
      AppImageUpdate, Gear Lever or AppManager download only what changed.</p>
-  <p class="note">Run one of the two, not both: they use different data folders.</p>
+  <p class="quiet">Run one of the two, not both: they use different data folders.</p>
+
+  <!-- template:start -->
+  <h2 id="start">Start your own app</h2>
+  <ol>
+    <li>Copy the repository and run <code>./prepare.sh &lt;crate&gt; &lt;DisplayName&gt; &lt;github-owner&gt;</code>. It renames everything and does the first build.</li>
+    <li>Replace the example pages and the icon, and fill in the text marked <code>EDIT</code>.</li>
+    <li>Run <code>flatpak/new-signing-key.sh</code>, follow <code>RELEASING.md</code>, then tag <code>v0.1.0</code>.</li>
+  </ol>
+  <!-- template:end -->
+
+  <h2>The Fast apps</h2>
+  <p>Built from the same starter kit:</p>
+  <ul class="family">
+    <li><a href="https://github.com/evandro777/FastApiClient">FastApiClient</a><br><small>REST API client</small></li>
+    <li><a href="https://github.com/evandro777/FastCheckup">FastCheckup</a><br><small>Inspect your system and act on each finding</small></li>
+    <li><a href="https://github.com/evandro777/FastClipboard">FastClipboard</a><br><small>Clipboard history</small></li>
+    <li><a href="https://github.com/evandro777/FastClock">FastClock</a><br><small>Alarm, timer, stopwatch and Pomodoro</small></li>
+    <li><a href="https://github.com/evandro777/FastMoji">FastMoji</a><br><small>Popup emoji picker</small></li>
+    <li><a href="https://github.com/evandro777/FastProcMan">FastProcMan</a><br><small>Process manager</small></li>
+    <li><a href="https://github.com/evandro777/FastSync">FastSync</a><br><small>Two-way cloud folder sync</small></li>
+  </ul>
 
   <h2>License</h2>
-  <p>GPL-3.0-or-later. See the <a href="https://github.com/OWNER/MyApp">repository</a>.</p>
+  <p>GPL-3.0-or-later. See the <a href="https://github.com/evandro777/FastHello">repository</a>.</p>
 </main>
+<script>
+// Tabs: one panel shown at a time. Without this script every screenshot is simply listed.
+(function () {
+  var tabs = [].slice.call(document.querySelectorAll('[role=tab]'));
+  var captions = {
+    "t-main": "A greeting that follows the name you type.",
+    "t-widgets": "Checkbox, slider, spin box and the rest, linked to each other.",
+    "t-table": "Search by typing anywhere, filter and sort. The chip counts the list.",
+    "t-buttons": "Text, icon and step buttons, and a delete that asks first.",
+    "t-settings": "Appearance and language, remembered between runs."
+  };
+  function show(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    document.getElementById('caption').textContent = captions[tab.id];
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(t); });
+    t.addEventListener('keydown', function (e) {
+      var j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
+      if (j < 0) return;
+      var next = tabs[(j + tabs.length) % tabs.length];
+      show(next); next.focus(); e.preventDefault();
+    });
+  });
+})();
+</script>
 </body>
 </html>

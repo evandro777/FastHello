@@ -14,7 +14,7 @@ A key is a **pair** made together:
 | Private | `private-key.asc` (outside the repo) | **Never** committed; GitHub secret | Creates signatures. Whoever has it can sign updates as you.        |
 
 On a version tag, CI imports the private key from the secret `FLATPAK_GPG_PRIVATE_KEY`, signs the repository, and puts the
-public key into `myapp.flatpakrepo` so users' Flatpak knows which key to trust.
+public key into `fasthello.flatpakrepo` so users' Flatpak knows which key to trust.
 
 ## One-time setup
 
@@ -28,7 +28,7 @@ Use a throwaway key folder so your own GPG keys are not touched.
 flatpak/new-signing-key.sh
 ```
 
-It makes the pair in a temporary keyring (your own GPG keys are not touched), writes `flatpak/signing-key.b64`, writes the private key to `~/.local/share/myapp-flatpak-private-signing.asc` (or the path you pass as an argument), checks that the two match, deletes the temporary keyring and prints the next steps. It refuses to run if `signing-key.b64` already exists. Commit `flatpak/signing-key.b64`. Never commit the private file.
+It makes the pair in a temporary keyring (your own GPG keys are not touched), writes `flatpak/signing-key.b64`, writes the private key to `~/.local/share/fasthello-flatpak-private-signing.asc` (or the path you pass as an argument), checks that the two match, deletes the temporary keyring and prints the next steps. It refuses to run if `signing-key.b64` already exists. Commit `flatpak/signing-key.b64`. Never commit the private file.
 
 ### 2. Store the private key as a GitHub secret
 
@@ -51,7 +51,7 @@ A *secret* is a value GitHub keeps for the repository: workflows can read it, bu
 sudo apt install gh        # once; Debian/Ubuntu/Mint
 gh auth login              # once; follow the prompts (browser or token)
 
-# From a clone of the repository (or add --repo OWNER/MyApp):
+# From a clone of the repository (or add --repo evandro777/FastHello):
 gh secret set FLATPAK_GPG_PRIVATE_KEY < private-key.asc
 ```
 
@@ -82,7 +82,7 @@ In `.github/workflows/flatpak.yml`, on a `v*` tag only (secrets are not availabl
 1. `echo "$GPG_PRIVATE_KEY" | gpg --batch --import` loads the private key from the secret.
 2. The fingerprint is read from the committed public key (`base64 -d flatpak/signing-key.b64 | gpg --show-keys ...`) and exported as `FLATPAK_GPG_KEY`.
 3. `flatpak/build.sh --bundle` passes it to `flatpak-builder --gpg-sign=<fingerprint>`, which signs the commits and the repository summary. The signed repository is then deployed to GitHub Pages.
-4. The `pages` job writes `GPGKey=<contents of signing-key.b64>` into `myapp.flatpakrepo`.
+4. The `pages` job writes `GPGKey=<contents of signing-key.b64>` into `fasthello.flatpakrepo`.
 
 Pushes and pull requests build the bundle without a key (with a warning), so CI works before you have made one.
 
@@ -91,8 +91,8 @@ Pushes and pull requests build the bundle without a key (with a warning), so CI 
 After the first tag, on any machine with Flatpak:
 
 ```bash
-flatpak remote-add --system --if-not-exists myapp https://OWNER.github.io/MyApp/myapp.flatpakrepo
-flatpak install --system myapp io.github.OWNER.MyApp
+flatpak remote-add --system --if-not-exists fasthello https://evandro777.github.io/FastHello/fasthello.flatpakrepo
+flatpak install --system fasthello io.github.evandro777.FastHello
 ```
 
 An unsigned or wrongly signed repository makes the install fail with a GPG error. To inspect a repository built locally (`flatpak/build.sh --bundle` without a key gives an unsigned one):
@@ -106,8 +106,8 @@ ostree summary --view --repo=flatpak/repo      # a signed repo lists a GPG signa
 If the private key is lost or leaked, make a new pair (steps 1-3), commit the new `signing-key.b64`, and replace the secret. Users who already added the remote still trust the *old* key, so their updates will fail until they remove and re-add the remote:
 
 ```bash
-flatpak remote-delete --system myapp
-flatpak remote-add --system myapp https://OWNER.github.io/MyApp/myapp.flatpakrepo
+flatpak remote-delete --system fasthello
+flatpak remote-add --system fasthello https://evandro777.github.io/FastHello/fasthello.flatpakrepo
 ```
 
 This is why the key has no expiry date and the private key needs a backup.

@@ -1,11 +1,11 @@
-//! Canned data for `scripts/ui-snapshot.sh` (`MYAPP_FIXTURES=empty|single|many`): every page can be rendered with zero,
+//! Canned data for `scripts/ui-snapshot.sh` (`FASTHELLO_FIXTURES=empty|single|many`): every page can be rendered with zero,
 //! one or many rows without scanning or touching the real system. Fill the models in `apply` as pages are added.
 use crate::{FileRow, Main};
 use slint::{StandardListViewItem, VecModel};
 
 /// 0 empty, 1 single, 2 many; `None` when the variable is unset or unknown.
 pub fn mode() -> Option<usize> {
-    match std::env::var("MYAPP_FIXTURES").ok()?.as_str() {
+    match std::env::var("FASTHELLO_FIXTURES").ok()?.as_str() {
         "empty" => Some(0),
         "single" => Some(1),
         "many" => Some(2),

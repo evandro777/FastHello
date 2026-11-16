@@ -51,11 +51,12 @@ M26 0H64V14H92V28H128V102A26 26 0 0 1 102 128H26A26 26 0 0 1 0 102V26A26 26 0 0 
 
 | App | Tile | Symbol | White on tile |
 | --- | --- | --- | --- |
-| FastPaste | `#2f6fdb` | Clipboard | 4.8:1 |
+| FastClipboard | `#2f6fdb` | Clipboard | 4.8:1 |
 | FastProcMan | `#1f9d63` | Pulse line | 3.5:1 |
 | FastMoji | `#cc7b00` | Smile | 3.4:1 |
 | FastApiClient | `#7a4fd6` | Braces with a dot | 5.4:1 |
 | FastCleany | `#11998e` | Sparkle | 3.5:1 |
+| FastSync | `#0b86a8` | Cloud with a two-way arrow | 4.2:1 |
 | FastHello (template) | `#4b5568` | Speech bubble with a wave | 7.5:1 |
 
 Hues that are still free, with their approximate contrast:
@@ -63,7 +64,6 @@ Hues that are still free, with their approximate contrast:
 | Tile | Looks like | White on tile |
 | --- | --- | --- |
 | `#d4572a` | Red-orange | 4.0:1 |
-| `#0b86a8` | Cyan | 4.2:1 |
 | `#c2417f` | Pink | 4.8:1 |
 
 When you use one, add your app to the first table in this file, in every Fast app that carries a copy.
@@ -109,4 +109,5 @@ Gradients and opacity are not just ignored, they come out wrong, so the PNG woul
 
 - `packaging/<app id>.svg`: the Flatpak and AppImage icon, and the About dialog in the app.
 - `packaging/<app id>.png`: the AppImage `.DirIcon`, and any place that needs a bitmap, such as a tray icon.
+- FastSync only: `crates/app/tray/{idle,syncing,paused,error}.svg` are the tray icons, the same tile and cloud with another color and mark per status. `build.rs` turns their PNGs into pixmaps; regenerate a PNG with `convert -background none -density 768 <name>.svg -resize 64x64 PNG32:<name>.png` (`PNG32:` keeps it 8-bit RGBA, which `build.rs` checks).
 - The landing page and the README may show it too. Update them when the icon changes.

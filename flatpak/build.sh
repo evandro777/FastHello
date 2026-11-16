@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Build and install the Flatpak for the current user.
-#   flatpak/build.sh            release id  io.github.OWNER.MyApp        (replaces an installed MyApp!)
-#   flatpak/build.sh --devel    dev id      io.github.OWNER.MyApp.Devel  (installs next to it)
-#   flatpak/build.sh --bundle   also write myapp.flatpak
+#   flatpak/build.sh            release id  io.github.evandro777.FastHello        (replaces an installed FastHello!)
+#   flatpak/build.sh --devel    dev id      io.github.evandro777.FastHello.Devel  (installs next to it)
+#   flatpak/build.sh --bundle   also write fasthello.flatpak
 # Needs: flatpak-builder, and once: flatpak install flathub org.freedesktop.Sdk//25.08 \
 #        org.freedesktop.Sdk.Extension.rust-stable//25.08
 set -euo pipefail
@@ -11,10 +11,10 @@ cd "$(dirname "$0")"
 # on the overlay filesystem, so deps are not installed) and has no FUSE.
 installation=${FLATPAK_INSTALLATION:---user}
 if [ "$installation" = --user ]; then opts=--install-deps-from=flathub; else opts=--disable-rofiles-fuse; fi
-manifest=io.github.OWNER.MyApp.yml
-app=io.github.OWNER.MyApp
+manifest=io.github.evandro777.FastHello.yml
+app=io.github.evandro777.FastHello
 # Outside the repo (which may live in Dropbox): the build tree and the OSTree cache are gigabytes.
-cache=${MYAPP_FLATPAK_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/myapp-flatpak}
+cache=${FASTHELLO_FLATPAK_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/fasthello-flatpak}
 devel=0; bundle=0
 for arg in "$@"; do
   case "$arg" in
@@ -44,13 +44,13 @@ if [ "$bundle" = 1 ]; then
     --state-dir="$cache/state" "$cache/build-dir" "$manifest"
   if [ -f signing-key.b64 ]; then
     # --repo-url + --gpg-keys make the bundle name the remote, so it can follow it for updates.
-    base64 -d signing-key.b64 | flatpak build-bundle repo myapp.flatpak "$app" \
-      --repo-url=https://OWNER.github.io/MyApp/ --gpg-keys=-
+    base64 -d signing-key.b64 | flatpak build-bundle repo fasthello.flatpak "$app" \
+      --repo-url=https://evandro777.github.io/FastHello/ --gpg-keys=-
   else
     # No key yet (new project): pushes and pull requests still build. Tags fail earlier, in the workflow.
     echo ">> WARNING: flatpak/signing-key.b64 is missing; run flatpak/new-signing-key.sh. Bundle is not tied to a remote." >&2
-    flatpak build-bundle repo myapp.flatpak "$app"
+    flatpak build-bundle repo fasthello.flatpak "$app"
   fi
-  echo ">> wrote flatpak/myapp.flatpak"
+  echo ">> wrote flatpak/fasthello.flatpak"
 fi
 echo ">> run it with: flatpak run $app"

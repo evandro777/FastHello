@@ -2,7 +2,10 @@ import {
     Button, CheckBox, ComboBox, GroupBox, LineEdit, Palette, ProgressIndicator, RadioGroup, ScrollView, Slider,
     SpinBox, Spinner, StandardListView, StandardTableView, Switch, TextEdit,
 } from "std-widgets.slint";
-import { AlertIcon, FilterBar, Icon, NeutralBadge, SearchBox, TabBar, TabItem } from "controls.slint";
+import {
+    AlertIcon, CloseButton, DangerButton, FilterBar, GhostButton, Icon, IconButton, NeutralBadge, ProgressBar, SearchBox,
+    StepButton, TabBar, TabItem,
+} from "controls.slint";
 import { Family } from "family.slint";
 
 // Every tab is a ScrollView over a `VerticalLayout { alignment: start }`: a short page keeps its natural row
@@ -110,7 +113,7 @@ component InputsTab inherits ScrollView {
                     Rectangle { }
                     NeutralBadge { text: "Flatpak"; }
                 }
-                // Icon-only buttons need an accessible label: there is no text to read.
+                // Icon-only buttons need an accessible label (there is no text to read) and a tooltip naming them.
                 HorizontalLayout {
                     spacing: 8px;
                     alignment: start;
@@ -120,6 +123,7 @@ component InputsTab inherits ScrollView {
                         accessible-label: @tr("Previous page");
                         enabled: root.controls-enabled && root.page > 1;
                         clicked => { root.page -= 1; }
+                        Tooltip { text: @markdown("\{@tr("Previous page")}"); }
                     }
                     Text { text: @tr("Page {} of 3", root.page); vertical-alignment: center; }
                     Button {
@@ -128,6 +132,7 @@ component InputsTab inherits ScrollView {
                         accessible-label: @tr("Next page");
                         enabled: root.controls-enabled && root.page < 3;
                         clicked => { root.page += 1; }
+                        Tooltip { text: @markdown("\{@tr("Next page")}"); }
                     }
                 }
             }
@@ -364,7 +369,7 @@ component FeedbackTab inherits ScrollView {
                     }
                     if root.running: Spinner { indeterminate: true; }
                 }
-                ProgressIndicator { progress: root.progress; }
+                ProgressBar { progress: root.progress; }
                 HorizontalLayout {
                     spacing: 8px;
                     alignment: start;
@@ -395,7 +400,7 @@ component FeedbackTab inherits ScrollView {
                     VerticalLayout {
                         alignment: center;
                         horizontal-stretch: 1;
-                        ProgressIndicator { progress: 0.6; }
+                        ProgressBar { progress: 0.6; }
                     }
                     Spinner { progress: 0.6; }
                 }
@@ -423,11 +428,118 @@ component FeedbackTab inherits ScrollView {
     }
 }
 
+// The kit's button family beside Fluent's `Button`, with the states a real app needs: a quiet action, a destructive
+// action behind a confirmation, icon-only buttons and a stepper.
+component ButtonsTab inherits ScrollView {
+    property <bool> confirming: false;
+    property <bool> deleted: false;
+    property <string> last-icon;
+    property <bool> chip-shown: true;
+    property <int> match-index: 3;
+
+    VerticalLayout {
+        alignment: start;
+        padding: 12px;
+        spacing: 12px;
+        GroupBox {
+            title: @tr("Text buttons");
+            HorizontalLayout {
+                alignment: start;
+                spacing: 8px;
+                Button { text: @tr("Button"); }
+                GhostButton { text: @tr("New folder"); plus: true; }
+                GhostButton { text: @tr("Rename"); }
+                GhostButton { text: @tr("Unavailable"); enabled: false; }
+            }
+        }
+        GroupBox {
+            title: @tr("Confirm before deleting");
+            VerticalLayout {
+                spacing: 8px;
+                // One row at a time keeps the height still, so the page does not jump when the state changes.
+                HorizontalLayout {
+                    alignment: start;
+                    spacing: 8px;
+                    height: Family.control-height;
+                    if !root.confirming && !root.deleted: Button {
+                        text: @tr("Delete 3 files");
+                        clicked => { root.confirming = true; }
+                    }
+                    if root.confirming: HorizontalLayout {
+                        spacing: 8px;
+                        VerticalLayout { alignment: center; Text { text: @tr("Delete 3 files? This cannot be undone."); } }
+                        Button { text: @tr("Cancel"); clicked => { root.confirming = false; } }
+                        DangerButton {
+                            text: @tr("Delete 3 files");
+                            clicked => {
+                                root.confirming = false;
+                                root.deleted = true;
+                            }
+                        }
+                    }
+                    if root.deleted: HorizontalLayout {
+                        spacing: 8px;
+                        VerticalLayout {
+                            alignment: center;
+                            Icon { source: @image-url("icons/circle-check.svg"); tone: Family.success; width: 16px; height: 16px; }
+                        }
+                        VerticalLayout { alignment: center; Text { text: @tr("Deleted 3 files"); } }
+                        GhostButton { text: @tr("Start over"); clicked => { root.deleted = false; } }
+                    }
+                }
+            }
+        }
+        GroupBox {
+            title: @tr("Icon buttons");
+            VerticalLayout {
+                spacing: 8px;
+                HorizontalLayout {
+                    alignment: start;
+                    spacing: 4px;
+                    IconButton { glyph: @image-url("icons/refresh.svg"); label: @tr("Refresh"); clicked => { root.last-icon = @tr("Refresh"); } }
+                    IconButton { glyph: @image-url("icons/copy.svg"); label: @tr("Copy"); clicked => { root.last-icon = @tr("Copy"); } }
+                    IconButton { glyph: @image-url("icons/folder.svg"); label: @tr("Open folder"); clicked => { root.last-icon = @tr("Open folder"); } }
+                    IconButton { glyph: @image-url("icons/trash.svg"); label: @tr("Remove"); danger: true; clicked => { root.last-icon = @tr("Remove"); } }
+                }
+                Text {
+                    text: root.last-icon == "" ? @tr("Hover a button to see its name.") : root.last-icon;
+                    color: Family.muted;
+                }
+                HorizontalLayout {
+                    alignment: start;
+                    spacing: 8px;
+                    height: Family.control-height;
+                    if root.chip-shown: HorizontalLayout {
+                        spacing: 4px;
+                        VerticalLayout { alignment: center; NeutralBadge { text: @tr("Draft"); } }
+                        CloseButton { label: @tr("Dismiss"); clicked => { root.chip-shown = false; } }
+                    }
+                    if !root.chip-shown: GhostButton { text: @tr("Show again"); clicked => { root.chip-shown = true; } }
+                }
+            }
+        }
+        GroupBox {
+            title: @tr("Step through matches");
+            HorizontalLayout {
+                alignment: start;
+                spacing: 4px;
+                StepButton { up: true; label: @tr("Previous"); clicked => { root.match-index = max(1, root.match-index - 1); } }
+                StepButton { label: @tr("Next"); clicked => { root.match-index = min(9, root.match-index + 1); } }
+                VerticalLayout {
+                    alignment: center;
+                    // A number and a slash read the same in every language, so nothing to translate.
+                    Text { text: "\{root.match-index} / 9"; color: Family.muted; }
+                }
+            }
+        }
+    }
+}
+
 export component WidgetsPage inherits Rectangle {
     in property <[StandardListViewItem]> items;
     in property <[[StandardListViewItem]]> files;
     in property <int> files-total;
-    // `in-out` so MYAPP_PAGE=<page>.<tab> can open a tab directly (scripts/ui-snapshot.sh).
+    // `in-out` so FASTHELLO_PAGE=<page>.<tab> can open a tab directly (scripts/ui-snapshot.sh).
     in-out property <int> tab: 0;
     // The table's search text and filter panel live in Main: it types into the search box and the snapshots open the panel.
     in-out property <string> query;
@@ -443,8 +555,10 @@ export component WidgetsPage inherits Rectangle {
         // The family tab bar (the same as FastProcMan and FastApiClient), not Fluent's `TabWidget`. All pages stay
         // alive and are only hidden, so a page keeps its scroll position and the table its search focus.
         TabBar {
-            for title[i] in [@tr("Inputs"), @tr("List"), @tr("Table"), @tr("Feedback")]: TabItem {
+            for title[i] in [@tr("Inputs"), @tr("List"), @tr("Table"), @tr("Feedback"), @tr("Buttons")]: TabItem {
                 title: title;
+                // Shows how many entries the page holds (the kit's `count`).
+                count: i == 1 ? root.items.length : 0;
                 active: root.tab == i;
                 clicked => { root.tab = i; }
             }
@@ -474,6 +588,7 @@ export component WidgetsPage inherits Rectangle {
                 filter-changed(q, k, big) => { root.filter-changed(q, k, big); }
             }
             FeedbackTab { width: parent.width; height: parent.height; visible: root.tab == 3; }
+            ButtonsTab { width: parent.width; height: parent.height; visible: root.tab == 4; }
         }
     }
 }

@@ -98,11 +98,11 @@ component About inherits Dialog {
     callback open-website();
 
     AboutCard {
-        icon: @image-url("../../../packaging/io.github.OWNER.MyApp.svg");
-        name: "MyApp";
+        icon: @image-url("../../../packaging/io.github.evandro777.FastHello.svg");
+        name: "FastHello";
         version: root.version;
         description: @tr("A light and fast Linux app built with Rust and Slint.");
-        url: "github.com/OWNER/MyApp";
+        url: "github.com/evandro777/FastHello";
         link-clicked(_) => { root.open-website(); }
         close => { root.dismiss(); }
     }
@@ -113,13 +113,15 @@ export component Main inherits Window {
     in property <string> version;
     in-out property <bool> settings-open: false;
     in-out property <bool> about-open: false;
-    // The sidebar page; `in-out` so MYAPP_PAGE can open one directly (scripts/ui-snapshot.sh).
+    // The sidebar page; `in-out` so FASTHELLO_PAGE can open one directly (scripts/ui-snapshot.sh).
     in-out property <int> page: 0;
     in property <[StandardListViewItem]> items;
     in property <[[StandardListViewItem]]> files;
     in property <int> files-total;
-    // Which tab of the Widgets page is open; `in-out` for MYAPP_PAGE=<page>.<tab>.
+    // Which tab of the Widgets page is open; `in-out` for FASTHELLO_PAGE=<page>.<tab>.
     in-out property <int> widgets-tab: 0;
+    // How many tabs the Widgets page has (Ctrl+Tab wraps at this); keep it equal to the TabBar's titles in widgets.slint.
+    property <int> widgets-tab-count: 5;
     // The table's search text and filter panel (`in-out`: the snapshots open the panel). Kept here so a key typed
     // anywhere on the Table tab can be put into the search box before the box has focus.
     in-out property <string> search;
@@ -140,7 +142,7 @@ export component Main inherits Window {
     // So Rust can save the choice at once instead of only on a clean exit.
     callback theme-changed(int);
     callback language-changed(int);
-    title: "MyApp";
+    title: "FastHello";
 
     // Palette.color-scheme is the only palette property an app can set; the colours follow the system accent.
     function apply-theme() {
@@ -150,6 +152,12 @@ export component Main inherits Window {
     // Table tab (page 1, tab 2): a printable key without Ctrl/Alt/Meta goes into the search box, and Esc empties it
     // while it has focus (with nothing to clear the key is left alone).
     function type-to-search(event: KeyEvent) -> EventResult {
+        // Ctrl+Tab / Ctrl+Shift+Tab step through the Widgets tabs and wrap around. Shift+Tab arrives as Backtab.
+        if root.page == 1 && !root.settings-open && !root.about-open && event.modifiers.control
+            && (event.text == Key.Tab || event.text == Key.Backtab) {
+            root.widgets-tab = mod(root.widgets-tab + (event.text == Key.Backtab || event.modifiers.shift ? widgets-tab-count - 1 : 1), widgets-tab-count);
+            return accept;
+        }
         if root.page == 1 && root.widgets-tab == 2 && root.search-focused && root.search != ""
             && event.text == Key.Escape {
             root.search = "";
@@ -196,11 +204,11 @@ export component Main inherits Window {
                         padding-top: 4px;
                         padding-bottom: 4px;
                         Image {
-                            source: @image-url("../../../packaging/io.github.OWNER.MyApp.svg");
+                            source: @image-url("../../../packaging/io.github.evandro777.FastHello.svg");
                             width: 24px;
                             height: 24px;
                         }
-                        Text { text: "MyApp"; font-weight: Family.section-weight; vertical-alignment: center; }
+                        Text { text: "FastHello"; font-weight: Family.section-weight; vertical-alignment: center; }
                         Rectangle { horizontal-stretch: 1; }
                         // The burger: opens the preferences dialog (Appearance, Language, About).
                         MenuButton {
@@ -208,7 +216,7 @@ export component Main inherits Window {
                             clicked => { root.settings-open = true; }
                         }
                     }
-                    // Two-way bound to `page`: the sidebar and MYAPP_PAGE drive the same value.
+                    // Two-way bound to `page`: the sidebar and FASTHELLO_PAGE drive the same value.
                     StandardListView {
                         model: [{ text: @tr("Hello") }, { text: @tr("Widgets") }];
                         current-item <=> root.page;

@@ -1,4 +1,4 @@
-//! User settings in one TOML file under the XDG data dir (`~/.local/share/MyApp`).
+//! User settings in one TOML file under the XDG data dir (`~/.local/share/FastHello`).
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::files::{read_or_backup, write_atomic};
 
 /// Folder name under the XDG data dir; `prepare.sh` rewrites it.
-pub const APP_DIR: &str = "MyApp";
+pub const APP_DIR: &str = "FastHello";
 pub const MIN_SIZE: (u32, u32) = (400, 300);
 /// Upper bound for a hand-edited size; a huge value would fail at window creation.
 pub const MAX_SIZE: u32 = 8192;
@@ -66,6 +66,16 @@ impl Settings {
         self.height = self.height.clamp(MIN_SIZE.1, MAX_SIZE);
     }
 
+    /// Sets `field` to `value` and returns true only when it differs, so callers save on a real change and the
+    /// start-up notification of the UI never rewrites the file.
+    pub fn change(field: &mut String, value: &str) -> bool {
+        let differs = field != value;
+        if differs {
+            *field = value.into();
+        }
+        differs
+    }
+
     /// Atomic write so a crash can never leave a half-written file. Failures are reported on stderr;
     /// the app keeps working with the in-memory settings.
     pub fn save(&self) {
@@ -99,7 +109,7 @@ mod tests {
     }
 
     fn temp_dir(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("myapp-test-{name}-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("fasthello-test-{name}-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         dir
     }
@@ -154,6 +164,14 @@ mod tests {
         let mut dark: Settings = toml::from_str("theme = \"dark\"").unwrap();
         dark.normalize();
         assert_eq!(dark.theme, "dark");
+    }
+
+    #[test]
+    fn change_reports_only_a_real_difference() {
+        let mut theme = String::from("dark");
+        assert!(!Settings::change(&mut theme, "dark"), "same value: nothing to save");
+        assert!(Settings::change(&mut theme, ""));
+        assert_eq!(theme, "");
     }
 
     #[test]

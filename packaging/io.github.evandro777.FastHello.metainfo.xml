@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.evandro777.FastHello</id>
+  <name>FastHello</name>
+  <summary>Starter kit and widget sandbox for light, fast Linux apps</summary>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer id="io.github.evandro777">
+    <name translatable="no">evandro777</name>
+  </developer>
+  <url type="homepage">https://evandro777.github.io/FastHello/</url>
+  <url type="bugtracker">https://github.com/evandro777/FastHello/issues</url>
+  <url type="vcs-browser">https://github.com/evandro777/FastHello</url>
+  <description>
+    <p>FastHello is the starting point of the Fast apps: small Linux desktop apps written in Rust with Slint that start quickly and use little memory. It is also a working app, with a greeting page and a Widgets page where you can try every control of the shared kit.</p>
+    <p>The Widgets page has five tabs:</p>
+    <ul>
+      <li>Inputs: checkbox, slider, spin box, switch, radio buttons and text fields, linked to each other.</li>
+      <li>List: add and remove items.</li>
+      <li>Table: sort, search and filter rows.</li>
+      <li>Feedback: progress bar, spinner and status messages.</li>
+      <li>Buttons: text, icon and delete-with-confirmation buttons.</li>
+    </ul>
+    <p>It follows the system accent colour and light or dark mode, can be switched between English and Portuguese, and remembers its window size.</p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/evandro777/FastHello/master/docs/screenshots/widgets-table-light.png</image>
+      <caption>The Table tab: search, filters and sortable columns</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/evandro777/FastHello/master/docs/screenshots/widgets-buttons-dark.png</image>
+      <caption>The Buttons tab in the dark theme</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/evandro777/FastHello/master/docs/screenshots/settings-light.png</image>
+      <caption>Preferences: appearance and language</caption>
+    </screenshot>
+  </screenshots>
+  <branding>
+    <color type="primary" scheme_preference="light">#c9d1df</color>
+    <color type="primary" scheme_preference="dark">#4b5568</color>
+  </branding>
+  <launchable type="desktop-id">io.github.evandro777.FastHello.desktop</launchable>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.6" date="2026-11-15">
+      <description>
+        <p>New Buttons tab on the Widgets page, and the kit's progress bar replaces Fluent's.</p>
+        <p>Selected rows use a neutral tint, tabs can show a count, icon buttons show a tooltip, and small grey text is easier to read on dark.</p>
+        <p>The window size is not saved while maximized, and a second start can no longer be held up by a slow client.</p>
+      </description>
+    </release>
+  </releases>
+</component>

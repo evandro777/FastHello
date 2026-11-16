@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Renders pages of the app on a private Xvfb display with canned data (MYAPP_FIXTURES) and saves PNGs to
+# Renders pages of the app on a private Xvfb display with canned data (FASTHELLO_FIXTURES) and saves PNGs to
 # target/ui-snapshots/<page>-<mode>.png. The real system is never scanned or changed.
 # Usage: scripts/ui-snapshot.sh [page ...]   (names or numbers; default all)   MODES="empty single many" to narrow.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Add one entry per sidebar page, with the number the app's `page` property uses.
-declare -A PAGES=([main]=0 [widgets]=1 [widgets-list]=1.1 [widgets-table]=1.2 [widgets-feedback]=1.3 [settings]=settings [about]=about)
+declare -A PAGES=([main]=0 [widgets]=1 [widgets-list]=1.1 [widgets-table]=1.2 [widgets-feedback]=1.3 [widgets-buttons]=1.4 [settings]=settings [about]=about)
 MODES=${MODES:-"empty single many"}
+# Own settings dir: the real theme, language and window size must not change what the PNGs show (set it to override).
+export XDG_DATA_HOME=${XDG_DATA_HOME:-$(mktemp -d)}
 OUT=target/ui-snapshots
 mkdir -p "$OUT"
 
@@ -29,10 +31,10 @@ DISPLAY_NUM=:$(head -n1 "$DISPLAY_FILE")
 for name in "${names[@]}"; do
   page=${PAGES[$name]:-$name}
   for mode in $MODES; do
-    DISPLAY=$DISPLAY_NUM MYAPP_FIXTURES=$mode MYAPP_PAGE=$page target/debug/myapp >/dev/null 2>&1 &
+    DISPLAY=$DISPLAY_NUM FASTHELLO_FIXTURES=$mode FASTHELLO_PAGE=$page target/debug/fasthello >/dev/null 2>&1 &
     APP=$!
     for _ in $(seq 50); do
-      DISPLAY=$DISPLAY_NUM xdotool search --name MyApp >/dev/null 2>&1 && break
+      DISPLAY=$DISPLAY_NUM xdotool search --name FastHello >/dev/null 2>&1 && break
       sleep 0.2
     done
     sleep 1

@@ -283,6 +283,102 @@ msgctxt "FeedbackTab"
 msgid "Update available"
 msgstr "Atualização disponível"
 
+msgctxt "WidgetsPage"
+msgid "Buttons"
+msgstr "Botões"
+
+msgctxt "ButtonsTab"
+msgid "Text buttons"
+msgstr "Botões de texto"
+
+msgctxt "ButtonsTab"
+msgid "Button"
+msgstr "Botão"
+
+msgctxt "ButtonsTab"
+msgid "New folder"
+msgstr "Nova pasta"
+
+msgctxt "ButtonsTab"
+msgid "Rename"
+msgstr "Renomear"
+
+msgctxt "ButtonsTab"
+msgid "Unavailable"
+msgstr "Indisponível"
+
+msgctxt "ButtonsTab"
+msgid "Confirm before deleting"
+msgstr "Confirmar antes de excluir"
+
+msgctxt "ButtonsTab"
+msgid "Delete 3 files"
+msgstr "Excluir 3 arquivos"
+
+msgctxt "ButtonsTab"
+msgid "Delete 3 files? This cannot be undone."
+msgstr "Excluir 3 arquivos? Isso não pode ser desfeito."
+
+msgctxt "ButtonsTab"
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgctxt "ButtonsTab"
+msgid "Deleted 3 files"
+msgstr "3 arquivos excluídos"
+
+msgctxt "ButtonsTab"
+msgid "Start over"
+msgstr "Recomeçar"
+
+msgctxt "ButtonsTab"
+msgid "Icon buttons"
+msgstr "Botões de ícone"
+
+msgctxt "ButtonsTab"
+msgid "Refresh"
+msgstr "Atualizar"
+
+msgctxt "ButtonsTab"
+msgid "Copy"
+msgstr "Copiar"
+
+msgctxt "ButtonsTab"
+msgid "Open folder"
+msgstr "Abrir pasta"
+
+msgctxt "ButtonsTab"
+msgid "Remove"
+msgstr "Remover"
+
+msgctxt "ButtonsTab"
+msgid "Hover a button to see its name."
+msgstr "Passe o mouse sobre um botão para ver o nome."
+
+msgctxt "ButtonsTab"
+msgid "Draft"
+msgstr "Rascunho"
+
+msgctxt "ButtonsTab"
+msgid "Dismiss"
+msgstr "Dispensar"
+
+msgctxt "ButtonsTab"
+msgid "Show again"
+msgstr "Mostrar de novo"
+
+msgctxt "ButtonsTab"
+msgid "Step through matches"
+msgstr "Percorrer resultados"
+
+msgctxt "ButtonsTab"
+msgid "Previous"
+msgstr "Anterior"
+
+msgctxt "ButtonsTab"
+msgid "Next"
+msgstr "Próximo"
+
 msgctxt "SettingsDialog"
 msgid "Close"
 msgstr "Fechar"

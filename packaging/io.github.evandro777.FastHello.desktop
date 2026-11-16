@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=MyApp
+Name=FastHello
 Type=Application
 GenericName=Utility
 Comment=Light and fast Linux app
-Exec=myapp
+Exec=fasthello
 Categories=Utility;
-Icon=io.github.OWNER.MyApp
+Icon=io.github.evandro777.FastHello
 Terminal=false

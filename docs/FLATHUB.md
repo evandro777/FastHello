@@ -4,12 +4,12 @@ Notes for the maintainer. Flathub reviews each new app, and its rules matter her
 
 ## Rules that affect this project (check docs.flathub.org/docs/for-app-authors/requirements; they change)
 
-- **App id.** Projects hosted on GitHub must use `io.github.<user>.<App>`. This project uses `io.github.OWNER.MyApp`, and the
+- **App id.** Projects hosted on GitHub must use `io.github.<user>.<App>`. This project uses `io.github.evandro777.FastHello`, and the
   id must equal the `<id>` in the metainfo.
 - **AI policy.** Submitters must disclose AI-generated code, documentation or packaging. **Flathub manifests must not contain
   AI-generated or AI-assisted content**, and AI tools or agents must not open or automate the submission pull request. If an
   AI assistant wrote any of this project's code, docs or in-repo `flatpak/` files, then:
-    - **Write the Flathub manifest yourself**, by hand (you may read `flatpak/io.github.OWNER.MyApp.yml` to understand it, but
+    - **Write the Flathub manifest yourself**, by hand (you may read `flatpak/io.github.evandro777.FastHello.yml` to understand it, but
       do not paste it).
     - **Open the submission PR yourself**, and disclose the AI assistance for the code and docs in it.
 - **No network during the build.** Dependencies must be declared as sources. For Rust that means a `cargo-sources.json` from
@@ -17,10 +17,10 @@ Notes for the maintainer. Flathub reviews each new app, and its rules matter her
   referenced from the manifest (the in-repo manifest vendors crates with `cargo vendor` instead, which Flathub will not take).
 - **Permissions as small as possible.** Be ready to say why each `finish-args` entry is needed.
 - **Metainfo must validate** (`appstreamcli validate`), with screenshots served over HTTPS (for example
-  `https://raw.githubusercontent.com/OWNER/MyApp/master/docs/screenshots/main.png`), a license, release notes and an OARS
+  `https://raw.githubusercontent.com/evandro777/FastHello/master/docs/screenshots/main.png`), a license, release notes and an OARS
   content rating. The icon is the SVG in `packaging/`.
 - The submission goes to [flathub/flathub](https://github.com/flathub/flathub) as a pull request against the `new-pr` branch;
-  after approval the app gets its own `flathub/io.github.OWNER.MyApp` repo, and updates are PRs there.
+  after approval the app gets its own `flathub/io.github.evandro777.FastHello` repo, and updates are PRs there.
 
 ## Checklist before submitting
 

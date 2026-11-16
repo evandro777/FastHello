@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag to scan (v0.2.0)
+        description: Release tag to scan (v0.1.0)
         required: true
 
 permissions:
@@ -42,9 +42,9 @@ jobs:
         run: |
           # The workflow that just finished says which asset to scan; a manual run scans both.
           case "$WORKFLOW" in
-            AppImage) patterns=(--pattern "MyApp-*.AppImage") ;;
-            Flatpak) patterns=(--pattern "MyApp-*.flatpak") ;;
-            *) patterns=(--pattern "MyApp-*.AppImage" --pattern "MyApp-*.flatpak") ;;
+            AppImage) patterns=(--pattern "FastHello-*.AppImage") ;;
+            Flatpak) patterns=(--pattern "FastHello-*.flatpak") ;;
+            *) patterns=(--pattern "FastHello-*.AppImage" --pattern "FastHello-*.flatpak") ;;
           esac
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" "${patterns[@]}" --dir assets
           : > report.md

@@ -1,4 +1,4 @@
-use myapp_core::settings::Settings;
+use fasthello_core::settings::Settings;
 use slint::{Model, ModelRc, StandardListViewItem, VecModel};
 use std::{cell::RefCell, rc::Rc};
 
@@ -124,7 +124,7 @@ fn is_printable(text: &str) -> bool {
 
 fn main() {
     if std::env::args().skip(1).any(|a| a == "-V" || a == "--version") {
-        return println!("myapp {}", env!("CARGO_PKG_VERSION"));
+        return println!("fasthello {}", env!("CARGO_PKG_VERSION"));
     }
     // Fixtures (scripts/ui-snapshot.sh) never touch a real running instance. Debug builds only, like the fixtures.
     #[cfg(debug_assertions)]
@@ -214,10 +214,8 @@ fn main() {
         let settings = settings.clone();
         move |index| {
             let mut s = settings.borrow_mut();
-            let theme = theme_name(index);
             // Also fires once at start-up; saving then would rewrite the file (and, with fixtures, the real one).
-            if s.theme != theme {
-                s.theme = theme.into();
+            if Settings::change(&mut s.theme, theme_name(index)) {
                 s.save();
             }
         }
@@ -232,8 +230,7 @@ fn main() {
                 .unwrap_or("");
             let mut s = settings.borrow_mut();
             // Same guard as the theme: the start-up notification must not rewrite the file.
-            if s.language != code {
-                s.language = code.into();
+            if Settings::change(&mut s.language, code) {
                 s.save();
                 select_language(&language(&s));
             }
@@ -253,7 +250,7 @@ fn main() {
     });
     // Opens a page (or the About overlay) directly, for the same script.
     #[cfg(debug_assertions)]
-    match std::env::var("MYAPP_PAGE").as_deref() {
+    match std::env::var("FASTHELLO_PAGE").as_deref() {
         Ok("settings") => ui.set_settings_open(true),
         Ok("about") => ui.set_about_open(true),
         // `<page>` or `<page>.<tab>`, e.g. `1.2` opens the third tab of the Widgets page.
@@ -261,7 +258,7 @@ fn main() {
             let (page, tab) = p.split_once('.').unwrap_or((p, "0"));
             let number = |s: &str| {
                 s.parse()
-                    .unwrap_or_else(|_| panic!("MYAPP_PAGE={p} is not <page>, <page>.<tab>, 'settings' or 'about'"))
+                    .unwrap_or_else(|_| panic!("FASTHELLO_PAGE={p} is not <page>, <page>.<tab>, 'settings' or 'about'"))
             };
             ui.set_page(number(page));
             ui.set_widgets_tab(number(tab));
@@ -274,11 +271,17 @@ fn main() {
             .set_size(slint::LogicalSize::new(s.width as f32, s.height as f32));
     }
     ui.run().unwrap();
-    // Normal exit only; the snapshot script kills the app, so fixtures never overwrite the real file.
-    let size = ui.window().size().to_logical(ui.window().scale_factor());
+    // Normal exit only. A fixture run closed by hand must not overwrite the real file either.
+    if fixture_run {
+        return;
+    }
     let mut settings = settings.borrow_mut();
-    settings.width = size.width.round() as u32;
-    settings.height = size.height.round() as u32;
+    // A maximized window's size is the screen's: keep the last normal size instead.
+    if !ui.window().is_maximized() {
+        let size = ui.window().size().to_logical(ui.window().scale_factor());
+        settings.width = size.width.round() as u32;
+        settings.height = size.height.round() as u32;
+    }
     settings.theme = theme_name(ui.get_color_scheme_index()).into();
     settings.save();
 }

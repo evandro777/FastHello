@@ -60,7 +60,9 @@ pub fn write_private(path: &Path, data: impl AsRef<[u8]>) -> io::Result<()> {
         .mode(0o600)
         .open(path)?;
     file.set_permissions(fs::Permissions::from_mode(0o600))?;
-    file.write_all(data.as_ref())
+    file.write_all(data.as_ref())?;
+    // Flushed before the caller's rename: after a power cut the new name must not point at an empty file.
+    file.sync_all()
 }
 
 /// Writes `data` to `path` through a private temp file and a rename, so a crash never leaves half a file. The folder

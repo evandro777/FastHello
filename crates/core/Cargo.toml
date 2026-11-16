@@ -1,5 +1,5 @@
 [package]
-name = "myapp-core"
+name = "fasthello-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

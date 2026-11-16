@@ -961,6 +961,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "fasthello"
+version = "0.1.6"
+dependencies = [
+ "fasthello-core",
+ "slint",
+ "slint-build",
+]
+
+[[package]]
+name = "fasthello-core"
+version = "0.1.6"
+dependencies = [
+ "serde",
+ "toml",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2401,23 +2418,6 @@ dependencies = [
  "png",
  "thiserror 2.0.21",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "myapp"
-version = "0.1.5"
-dependencies = [
- "myapp-core",
- "slint",
- "slint-build",
-]
-
-[[package]]
-name = "myapp-core"
-version = "0.1.5"
-dependencies = [
- "serde",
- "toml",
 ]
 
 [[package]]

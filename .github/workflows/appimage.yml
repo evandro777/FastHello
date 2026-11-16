@@ -1,7 +1,7 @@
 name: AppImage
 
 # Builds the AppImage (and its .zsync for delta updates) on every push to master and on pull requests,
-# and adds both to the GitHub release when a version tag (v0.2.0, ...) is pushed.
+# and adds both to the GitHub release when a version tag (v0.1.0, ...) is pushed.
 on:
   push:
     branches: [master]
@@ -49,8 +49,8 @@ jobs:
         with:
           name: appimage-x86_64
           path: |
-            MyApp-*.AppImage
-            MyApp-*.AppImage.zsync
+            FastHello-*.AppImage
+            FastHello-*.AppImage.zsync
 
   release:
     name: Add to release
@@ -70,4 +70,4 @@ jobs:
         run: |
           gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 ||
             gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes || sleep 20
-          gh release upload "$GITHUB_REF_NAME" MyApp-*.AppImage* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload "$GITHUB_REF_NAME" FastHello-*.AppImage* --repo "$GITHUB_REPOSITORY" --clobber

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Writes crates/app/translations/<lang>/LC_MESSAGES/myapp.po (bundled by build.rs). Edit the table, run, commit.
+"""Writes crates/app/translations/<lang>/LC_MESSAGES/fasthello.po (bundled by build.rs). Edit the table, run, commit.
 Slint's default gettext context is the component name, so msgctxt is `Main`, `SettingsDialog`, `About`, `WidgetsPage`, `InputsTab`, `ListTab`, `TableTab` or `FeedbackTab` (UI) or `Tr` (strings built in Rust)."""
 import os
 
@@ -77,6 +77,30 @@ T = [
     ("FeedbackTab", "Backup finished", ["Backup concluído"]),
     ("FeedbackTab", "Disk almost full", ["Disco quase cheio"]),
     ("FeedbackTab", "Update available", ["Atualização disponível"]),
+    ("WidgetsPage", "Buttons", ["Botões"]),
+    ("ButtonsTab", "Text buttons", ["Botões de texto"]),
+    ("ButtonsTab", "Button", ["Botão"]),
+    ("ButtonsTab", "New folder", ["Nova pasta"]),
+    ("ButtonsTab", "Rename", ["Renomear"]),
+    ("ButtonsTab", "Unavailable", ["Indisponível"]),
+    ("ButtonsTab", "Confirm before deleting", ["Confirmar antes de excluir"]),
+    ("ButtonsTab", "Delete 3 files", ["Excluir 3 arquivos"]),
+    ("ButtonsTab", "Delete 3 files? This cannot be undone.", ["Excluir 3 arquivos? Isso não pode ser desfeito."]),
+    ("ButtonsTab", "Cancel", ["Cancelar"]),
+    ("ButtonsTab", "Deleted 3 files", ["3 arquivos excluídos"]),
+    ("ButtonsTab", "Start over", ["Recomeçar"]),
+    ("ButtonsTab", "Icon buttons", ["Botões de ícone"]),
+    ("ButtonsTab", "Refresh", ["Atualizar"]),
+    ("ButtonsTab", "Copy", ["Copiar"]),
+    ("ButtonsTab", "Open folder", ["Abrir pasta"]),
+    ("ButtonsTab", "Remove", ["Remover"]),
+    ("ButtonsTab", "Hover a button to see its name.", ["Passe o mouse sobre um botão para ver o nome."]),
+    ("ButtonsTab", "Draft", ["Rascunho"]),
+    ("ButtonsTab", "Dismiss", ["Dispensar"]),
+    ("ButtonsTab", "Show again", ["Mostrar de novo"]),
+    ("ButtonsTab", "Step through matches", ["Percorrer resultados"]),
+    ("ButtonsTab", "Previous", ["Anterior"]),
+    ("ButtonsTab", "Next", ["Próximo"]),
     ("SettingsDialog", "Close", ["Fechar"]),
     ("About", "A light and fast Linux app built with Rust and Slint.", ["Um app Linux leve e rápido feito com Rust e Slint."]),
     # The About card of the Fast family kit (about.slint): the same strings, in the same context, in every app.
@@ -90,7 +114,7 @@ q = lambda s: '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 for i, lang in enumerate(LANGS):
     d = f"{OUT}/{lang}/LC_MESSAGES"
     os.makedirs(d, exist_ok=True)
-    with open(f"{d}/myapp.po", "w") as f:
+    with open(f"{d}/fasthello.po", "w") as f:
         f.write(f'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n"Language: {lang}\\n"\n')
         for ctx, msgid, tr in T:
             assert len(tr) == len(LANGS) and tr[i].count("{}") == msgid.count("{}"), msgid
