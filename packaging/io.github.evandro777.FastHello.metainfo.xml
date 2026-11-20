@@ -44,6 +44,15 @@
   <launchable type="desktop-id">io.github.evandro777.FastHello.desktop</launchable>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.1.7" date="2026-11-20">
+      <description>
+        <p>Release 0.1.7: update Slint to 1.19 and raise the MSRV to 1.95.</p>
+        <p>Slint and slint-build go from 1.18 to 1.19, and Cargo.lock is refreshed.</p>
+        <p>rust-version and the MSRV CI job move from 1.92 to 1.95. AGENTS.md, README.md and RELEASING.md are updated to match.</p>
+        <p>The Flatpak source now skips .git and docs/screenshots, so the build copies less.</p>
+        <p>The workspace version goes to 0.1.7 and the metainfo release date to 2026-11-19.</p>
+      </description>
+    </release>
     <release version="0.1.6" date="2026-11-15">
       <description>
         <p>New Buttons tab on the Widgets page, and the kit's progress bar replaces Fluent's.</p>

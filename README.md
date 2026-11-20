@@ -1,4 +1,4 @@
-# FastHello
+# <img src="packaging/io.github.evandro777.FastHello.svg" width="36" height="36" alt=""> FastHello
 
 [![CI](https://github.com/evandro777/FastHello/actions/workflows/ci.yml/badge.svg)](https://github.com/evandro777/FastHello/actions/workflows/ci.yml)
 [![Flatpak](https://github.com/evandro777/FastHello/actions/workflows/flatpak.yml/badge.svg)](https://github.com/evandro777/FastHello/actions/workflows/flatpak.yml)

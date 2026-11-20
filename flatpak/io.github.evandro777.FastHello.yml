@@ -37,6 +37,8 @@ modules:
         path: ..
         skip:
           - target
+          - .git
+          - docs/screenshots
           - dev
           - .claude
           - flatpak/build-dir
